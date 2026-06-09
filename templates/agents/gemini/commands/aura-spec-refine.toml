@@ -1,0 +1,61 @@
+name = "aura-spec-refine"
+description = "Progressive spec refinement. Iterates a quick/draft spec up to full fidelity without losing existing work. Unique to Aura-SDD."
+
+[prompt]
+content = """
+
+# aura-spec-refine
+
+## Goal
+
+Elevate an existing spec from its current fidelity level to the next without losing any human-approved content.
+
+```
+quick → standard → full
+```
+
+| Level | Contents |
+|-------|---------|
+| `quick` | Problem + 3–5 user stories, no design |
+| `standard` | All EARS requirements, boundary candidates, open questions resolved |
+| `full` | Requirements + Architecture + Mermaid diagram + Boundary Commitments |
+
+## Inputs
+
+`@aura-spec-refine <feature-name> [--to <level>]`
+
+## Execution Workflow
+
+### Step 1 — Detect current level
+
+Read `.aura/specs/<feature>/spec.json`. Check `fidelity` field. If missing, infer from content.
+
+### Step 2 — Gap analysis
+
+List what is missing for the target fidelity level.
+
+### Step 3 — Load context
+
+Read `.aura/constitution.md`, `.aura/steering/*.md`, current `spec.md`, related specs.
+
+### Step 4 — Refine (additive only)
+
+**Preservation rule**: Do NOT remove or rewrite existing content. Only ADD what is missing.
+
+- `quick → standard`: Full EARS requirements, boundary candidates, resolve open questions
+- `standard → full`: `plan.md` with Mermaid diagram, promote boundaries to commitments
+
+### Step 5 — Boundary conflict check
+
+Warn if refined boundaries overlap with other specs.
+
+### Step 6 — Write
+
+Update `spec.md` (additive). Set `spec.json` `fidelity` to new level.
+
+## Completion Criteria
+
+- `spec.md` updated (content only added)
+- `spec.json` `fidelity` updated
+- Boundary conflicts reported if any
+"""

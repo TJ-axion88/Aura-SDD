@@ -11,12 +11,13 @@ import { writeFileSafe, backupFile, fileExists, readFileOr } from './utils/fs.js
 import { formatHeading, formatSuccess, formatWarn, formatDim, formatError, formatInfo } from './cli/ui/colors.js';
 import { askYesNo, askChoice, isInteractive } from './cli/ui/prompt.js';
 import { loadWorkflowDefinition, runWorkflow } from './workflow/engine.js';
+import { loadRunState } from './workflow/state.js';
 import { ExtensionManager } from './extension/manager.js';
 import { listExtensions } from './extension/registry.js';
 import { getAgentDefinition, agentList } from './agents/registry.js';
 import { detectCategory, defaultPolicy, CategoryPolicyStore } from './cli/policies.js';
 
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 const PROJECT_ROOT = process.cwd();
 
 export const run = async (argv: string[]): Promise<void> => {
@@ -194,8 +195,10 @@ const handleWorkflowSubcommand = async (args: string[]): Promise<void> => {
         console.error(formatError('Usage: aura-sdd workflow resume <run-id>'));
         process.exit(1);
       }
-      const def = loadWorkflowDefinition('__resume__');
-      await runWorkflow(def, {}, '.aura', runId);
+      const runsDir = path.join('.aura', 'workflows', 'runs');
+      const savedState = loadRunState(runId, runsDir);
+      const def = loadWorkflowDefinition(savedState.workflowName, '.aura');
+      await runWorkflow(def, savedState.inputs, '.aura', runId);
       break;
     }
     case 'list':
@@ -208,7 +211,7 @@ const handleWorkflowSubcommand = async (args: string[]): Promise<void> => {
 };
 
 const handleExtensionSubcommand = async (args: string[]): Promise<void> => {
-  const [action, extId] = args;
+  const [action, extId, sourcePath] = args;
   const manager = new ExtensionManager('.aura', PROJECT_ROOT, 'claude-code');
   switch (action) {
     case 'list':
@@ -216,6 +219,19 @@ const handleExtensionSubcommand = async (args: string[]): Promise<void> => {
         console.log(`  ${e.enabled ? '●' : '○'} ${e.id} — ${e.name} v${e.version}`),
       );
       break;
+    case 'add':
+    case 'install': {
+      if (!extId) {
+        console.error(formatError('Usage: aura-sdd extension add <id> [source-path]'));
+        process.exit(1);
+      }
+      // source-path is the local directory containing the extension manifest.
+      // If omitted, we look in .aura/extensions/<id> (for pre-copied extensions).
+      const src = sourcePath ?? path.join('.aura', 'extensions', extId);
+      manager.install(extId, src);
+      console.log(formatSuccess(`✓ Extension "${extId}" installed.`));
+      break;
+    }
     case 'remove':
       if (!extId) {
         console.error(formatError('Usage: aura-sdd extension remove <id>'));
@@ -223,8 +239,24 @@ const handleExtensionSubcommand = async (args: string[]): Promise<void> => {
       }
       manager.remove(extId);
       break;
+    case 'enable':
+      if (!extId) {
+        console.error(formatError('Usage: aura-sdd extension enable <id>'));
+        process.exit(1);
+      }
+      manager.enable(extId);
+      console.log(formatSuccess(`✓ Extension "${extId}" enabled.`));
+      break;
+    case 'disable':
+      if (!extId) {
+        console.error(formatError('Usage: aura-sdd extension disable <id>'));
+        process.exit(1);
+      }
+      manager.disable(extId);
+      console.log(formatSuccess(`✓ Extension "${extId}" disabled.`));
+      break;
     default:
-      console.error(formatError('extension subcommand: list | remove'));
+      console.error(formatError('extension subcommand: list | add | remove | enable | disable'));
       process.exit(1);
   }
 };
@@ -272,7 +304,7 @@ ${formatHeading(`Aura-SDD v${VERSION}`)} — Spec-Driven Development framework
 ${formatHeading('Usage:')}
   aura-sdd [agent] [options]
   aura-sdd workflow <run|resume|list> [args]
-  aura-sdd extension <list|remove> [id]
+  aura-sdd extension <list|add|remove|enable|disable> [id] [src]
   aura-sdd preset <list|apply|remove> [id]
 
 ${formatHeading('Agent flags:')}
@@ -315,6 +347,7 @@ ${formatHeading('Skills installed (20 skills):')}
   /aura-steering-custom  Create custom steering documents  [NEW]
   /aura-spec             Write EARS-format requirements
   /aura-spec-quick       Fast-track: spec + tasks in one shot  [NEW]
+  /aura-spec-refine      Progressive spec refinement (quick→standard→full)  [NEW]
   /aura-spec-batch       Create multiple specs from roadmap  [NEW]
   /aura-spec-status      Track progress across all specs  [NEW]
   /aura-clarify          Resolve ambiguous requirements

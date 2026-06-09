@@ -11,9 +11,32 @@ Analyze the user's idea and route it into the most appropriate next action. Dete
 
 ## Inputs
 
-Accept the idea as inline text: `/aura-discovery <idea>` or gather it interactively.
+`/aura-discovery <idea>` — route an idea into the correct workflow  
+`/aura-discovery --from-git` — auto-generate a brief from uncommitted git changes  
+`/aura-discovery --from-git [base-branch]` — diff against a specific base (default: main/master)
 
 ## Execution Workflow
+
+### Step 0 — --from-git mode (Aura-SDD unique)
+
+If invoked with `--from-git`:
+
+1. Run `git diff --name-only HEAD` (or `git diff --name-only <base>..HEAD` if base provided)
+2. Run `git diff --stat HEAD` for a summary of changed lines per file
+3. Group changed files by top-level directory/module:
+   ```
+   src/workflow/     5 files (+320, -45 lines)
+   src/cli/          2 files (+50, -12 lines)
+   templates/        8 files (+180, -0 lines)
+   test/             3 files (+120, -15 lines)
+   ```
+4. Read any changed `spec.md` or `plan.md` files to understand intent
+5. Synthesize a `brief.md` automatically:
+   - **Problem**: infer from file distribution (e.g., "workflow engine modified extensively")
+   - **Scope**: derived from changed directories
+   - **Boundary Candidates**: each changed module is a candidate
+6. Ask the user: "This brief was auto-generated from your git diff. Does it accurately describe your intent? [y/edit/n]"
+7. If approved, proceed to Step 4 (route). If edit, allow manual correction then proceed.
 
 ### Step 1 — Load project context
 

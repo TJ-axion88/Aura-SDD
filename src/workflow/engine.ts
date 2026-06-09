@@ -14,13 +14,20 @@ import { executeShellStep, type ShellStep } from './steps/shell.js';
 import { executeGateStep, type GateStep } from './steps/gate.js';
 import { executeFanOutStep, resolveFanOutItems, type FanOutStep } from './steps/fan_out.js';
 import { executeIfThenStep, type IfThenStep } from './steps/if_then.js';
+import { executeSwitchStep, type SwitchStep } from './steps/switch.js';
+import { executeFanInStep, type FanInStep } from './steps/fan_in.js';
+import { executeWhileLoopStep, type WhileLoopStep } from './steps/while_loop.js';
+import type { BaseStep } from './steps/fan_out.js';
 
 export type WorkflowStep =
   | SkillStep
   | ShellStep
   | GateStep
   | FanOutStep
-  | IfThenStep;
+  | FanInStep
+  | IfThenStep
+  | SwitchStep
+  | WhileLoopStep;
 
 export type WorkflowDefinition = {
   name: string;
@@ -35,28 +42,97 @@ export const loadWorkflowDefinition = (
   nameOrPath: string,
   auraDir = AURA_DIR_DEFAULT,
 ): WorkflowDefinition => {
-  let wfPath: string;
-  if (nameOrPath.endsWith('.yml') || nameOrPath.endsWith('.yaml') ||
-      nameOrPath.includes('/') || nameOrPath.includes('\\')) {
-    wfPath = path.resolve(nameOrPath);
-  } else {
-    wfPath = path.join(auraDir, 'workflows', 'definitions', `${nameOrPath}.yml`);
+  // Direct path: absolute or contains separators
+  if (nameOrPath.includes('/') || nameOrPath.includes('\\') ||
+      nameOrPath.endsWith('.json') || nameOrPath.endsWith('.yml') || nameOrPath.endsWith('.yaml')) {
+    const wfPath = path.resolve(nameOrPath);
+    return parseWorkflowFile(wfPath);
   }
-  const raw = fs.readFileSync(wfPath, 'utf8');
-  return parseYamlWorkflow(raw);
+
+  // Named workflow: try .json first, then .yml for user-created YAML definitions
+  const defsDir = path.join(auraDir, 'workflows', 'definitions');
+  const jsonPath = path.join(defsDir, `${nameOrPath}.json`);
+  if (fs.existsSync(jsonPath)) {
+    return parseWorkflowFile(jsonPath);
+  }
+  const ymlPath = path.join(defsDir, `${nameOrPath}.yml`);
+  if (fs.existsSync(ymlPath)) {
+    return parseWorkflowFile(ymlPath);
+  }
+  throw new Error(`Workflow definition not found: "${nameOrPath}" (looked in ${defsDir})`);
 };
 
-// Minimal YAML parser for workflow definitions (avoids external deps)
-const parseYamlWorkflow = (yaml: string): WorkflowDefinition => {
-  // For production this would use a proper YAML parser; we accept structured YAML
-  // with a predictable schema. Using JSON-embedded YAML via markers for now.
+const parseWorkflowFile = (filePath: string): WorkflowDefinition => {
+  const raw = fs.readFileSync(filePath, 'utf8');
+  // JSON format (official Aura-SDD workflow format)
   try {
-    // Attempt to parse as JSON first (for test scenarios)
-    return JSON.parse(yaml) as WorkflowDefinition;
+    return JSON.parse(raw) as WorkflowDefinition;
   } catch {
-    // Minimal YAML line-by-line parse for the workflow schema
-    throw new Error('YAML parsing requires structured workflow files. Use JSON format for v1.0.');
+    // Minimal YAML parser for simple workflow definitions
+    return parseMinimalYaml(raw, filePath);
   }
+};
+
+// Minimal line-by-line YAML parser for the workflow definition schema.
+// Supports only the subset used by Aura-SDD workflow files.
+const parseMinimalYaml = (yaml: string, filePath: string): WorkflowDefinition => {
+  const lines = yaml.split('\n');
+  const result: Record<string, unknown> = {};
+  let currentKey: string | null = null;
+  let stepsRaw: string[] = [];
+  let inSteps = false;
+  let stepIndent = -1;
+  let currentStep: Record<string, unknown> | null = null;
+  const steps: Record<string, unknown>[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const indent = line.search(/\S/);
+
+    if (!inSteps) {
+      // Top-level keys
+      const topMatch = trimmed.match(/^(\w+):\s*(.*)/);
+      if (topMatch) {
+        const [, key, value] = topMatch;
+        if (key === 'steps') {
+          inSteps = true;
+        } else if (value) {
+          result[key] = value.replace(/^['"]|['"]$/g, '');
+        } else {
+          currentKey = key;
+          result[key] = {};
+        }
+      }
+      continue;
+    }
+
+    // Inside steps array
+    if (trimmed.startsWith('- ') || trimmed === '-') {
+      if (currentStep) steps.push(currentStep);
+      currentStep = {};
+      stepIndent = indent;
+      const rest = trimmed.slice(2).trim();
+      if (rest) {
+        const kv = rest.match(/^(\w+):\s*(.*)/);
+        if (kv) currentStep[kv[1]] = kv[2].replace(/^['"]|['"]$/g, '');
+      }
+    } else if (currentStep && indent > stepIndent) {
+      const kv = trimmed.match(/^(\w+):\s*(.*)/);
+      if (kv) currentStep[kv[1]] = kv[2].replace(/^['"]|['"]$/g, '');
+    }
+  }
+  if (currentStep) steps.push(currentStep);
+
+  if (steps.length === 0) {
+    throw new Error(
+      `Cannot parse workflow file: ${filePath}\n` +
+      'Workflow definitions must be JSON format. See .aura/workflows/definitions/full-sdd.json for reference.'
+    );
+  }
+
+  return { ...result, steps } as unknown as WorkflowDefinition;
 };
 
 export const runWorkflow = async (
@@ -80,10 +156,18 @@ export const runWorkflow = async (
   state = updateRunState(state, { status: 'running' });
   saveRunState(state, runsDir);
 
-  for (const step of definition.steps) {
+  // Index-based loop to support if_then jumps to arbitrary step IDs
+  const steps = definition.steps;
+  const stepIndex = new Map(steps.map((s, i) => [s.id, i]));
+  let i = 0;
+
+  while (i < steps.length) {
+    const step = steps[i];
+
     const existing = state.steps[step.id];
     if (existing?.status === 'completed') {
       console.log(`[aura-workflow] ✓ Skipping completed step: ${step.id}`);
+      i++;
       continue;
     }
 
@@ -126,11 +210,20 @@ export const runWorkflow = async (
       return state;
     }
 
-    // Handle if_then jump
-    if (step.type === 'if_then' && 'nextStepId' in stepResult.output!) {
-      const nextId = (stepResult.output as { nextStepId: string }).nextStepId;
-      if (nextId === '__end__') break;
+    // Handle if_then / switch jump to a named step or __end__
+    const nextStepId = stepResult.output?.['nextStepId'] as string | undefined;
+    if (nextStepId) {
+      if (nextStepId === '__end__') break;
+      const jumpIdx = stepIndex.get(nextStepId);
+      if (jumpIdx !== undefined) {
+        i = jumpIdx;
+        continue;
+      }
+      // Unknown step ID — treat as end
+      break;
     }
+
+    i++;
   }
 
   if (state.status === 'running') {
@@ -142,24 +235,37 @@ export const runWorkflow = async (
   return state;
 };
 
-const dispatchStep = async (
-  step: WorkflowStep,
+export const dispatchStep = async (
+  step: WorkflowStep | BaseStep,
   state: WorkflowRunState,
 ): Promise<StepState> => {
-  switch (step.type) {
+  // Cast to WorkflowStep for the switch — fan_out creates synthetic steps of the same shape
+  const s = step as WorkflowStep;
+  switch (s.type) {
     case 'skill':
-      return executeSkillStep(step, state);
+      return executeSkillStep(s, state);
     case 'shell':
-      return executeShellStep(step);
+      return executeShellStep(s);
     case 'gate':
-      return executeGateStep(step);
+      return executeGateStep(s);
     case 'fan_out': {
-      const items = resolveFanOutItems(step.items, state);
-      return executeFanOutStep(step, items);
+      const items = resolveFanOutItems(s.items, state);
+      return executeFanOutStep(s, items, state, dispatchStep);
     }
+    case 'fan_in':
+      return executeFanInStep(s, state);
     case 'if_then':
-      return executeIfThenStep(step, state);
-    default:
-      throw new Error(`Unknown step type: ${(step as WorkflowStep).type}`);
+      return executeIfThenStep(s, state);
+    case 'switch':
+      return executeSwitchStep(s, state);
+    case 'while_loop': {
+      const prevOutput = state.steps[s.id]?.output;
+      const iteration = typeof prevOutput?.['iteration'] === 'number' ? prevOutput['iteration'] + 1 : 0;
+      return executeWhileLoopStep(s, state, iteration);
+    }
+    default: {
+      const unknownStep = step as BaseStep;
+      throw new Error(`Unknown step type: ${unknownStep.type}`);
+    }
   }
 };
