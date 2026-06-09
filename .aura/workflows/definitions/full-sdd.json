@@ -1,0 +1,76 @@
+{
+  "name": "full-sdd",
+  "description": "Complete Aura-SDD pipeline: Discovery → Spec → Plan → Tasks → Impl (fan_out) → Validate",
+  "inputs": {
+    "feature": {
+      "type": "string",
+      "required": true
+    },
+    "skip_constitution_check": {
+      "type": "boolean",
+      "required": false
+    }
+  },
+  "steps": [
+    {
+      "id": "discovery",
+      "type": "skill",
+      "skill": "aura-discovery",
+      "input": "{{ inputs.feature }}"
+    },
+    {
+      "id": "gate_discovery",
+      "type": "gate",
+      "message": "Review .aura/discovery/brief.md. Approve to proceed to spec creation?",
+      "options": ["approve", "reject", "edit"]
+    },
+    {
+      "id": "spec",
+      "type": "skill",
+      "skill": "aura-spec",
+      "input": "{{ inputs.feature }}"
+    },
+    {
+      "id": "gate_spec",
+      "type": "gate",
+      "message": "Review .aura/specs/<feature>/spec.md. Approve to proceed to planning?",
+      "options": ["approve", "reject", "edit"]
+    },
+    {
+      "id": "plan",
+      "type": "skill",
+      "skill": "aura-plan",
+      "input": "{{ inputs.feature }}"
+    },
+    {
+      "id": "gate_plan",
+      "type": "gate",
+      "message": "Review .aura/specs/<feature>/plan.md. Approve to proceed to task decomposition?",
+      "options": ["approve", "reject", "edit"]
+    },
+    {
+      "id": "tasks",
+      "type": "skill",
+      "skill": "aura-tasks",
+      "input": "{{ inputs.feature }}"
+    },
+    {
+      "id": "gate_tasks",
+      "type": "gate",
+      "message": "Review .aura/specs/<feature>/tasks.md. Approve to begin autonomous implementation?",
+      "options": ["approve", "reject", "edit"]
+    },
+    {
+      "id": "impl",
+      "type": "skill",
+      "skill": "aura-impl",
+      "input": "{{ inputs.feature }}"
+    },
+    {
+      "id": "validate",
+      "type": "skill",
+      "skill": "aura-validate",
+      "input": "{{ inputs.feature }}"
+    }
+  ]
+}

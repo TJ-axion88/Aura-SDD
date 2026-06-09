@@ -1,0 +1,52 @@
+{
+  "name": "tdd",
+  "description": "TDD-focused pipeline: Spec (tests-first) → Gate → Impl (RED→GREEN→REFACTOR) → Validate",
+  "inputs": {
+    "feature": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "id": "spec",
+      "type": "skill",
+      "skill": "aura-spec",
+      "input": "{{ inputs.feature }}",
+      "note": "Write acceptance criteria first. Each criterion maps to a test case."
+    },
+    {
+      "id": "gate_spec",
+      "type": "gate",
+      "message": "Review spec.md — verify every acceptance criterion is independently testable. Approve?",
+      "options": ["approve", "reject", "edit"]
+    },
+    {
+      "id": "tasks",
+      "type": "skill",
+      "skill": "aura-tasks",
+      "input": "{{ inputs.feature }}",
+      "note": "Decompose into TDD tasks: each task starts with writing a failing test."
+    },
+    {
+      "id": "gate_tasks",
+      "type": "gate",
+      "message": "Review tasks.md — verify each task begins with a RED test step. Approve?",
+      "options": ["approve", "reject", "edit"]
+    },
+    {
+      "id": "impl",
+      "type": "skill",
+      "skill": "aura-impl",
+      "input": "{{ inputs.feature }}",
+      "note": "For each task: RED (write failing test) → GREEN (minimal impl) → REFACTOR (clean up)."
+    },
+    {
+      "id": "validate",
+      "type": "skill",
+      "skill": "aura-validate",
+      "input": "{{ inputs.feature }}",
+      "note": "Verify all tests pass, coverage meets threshold, and no regressions."
+    }
+  ]
+}

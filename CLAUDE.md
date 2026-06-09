@@ -1,6 +1,6 @@
 # CLAUDE.md — Aura-SDD Project
 
-This project uses **Aura-SDD v2.0.0** — a Spec-Driven Development framework with Boundary-First discipline, Constitutional Enforcement, and autonomous implementation.
+This project uses **Aura-SDD v2.1.0** — a Spec-Driven Development framework with Boundary-First discipline, Constitutional Enforcement, and autonomous implementation.
 
 ## Aura-SDD Skills
 

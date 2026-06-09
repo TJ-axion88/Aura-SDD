@@ -1,0 +1,48 @@
+{
+  "name": "lean-sdd",
+  "description": "Lean SDD pipeline for solo developers: Spec → Tasks → Impl → Validate (no discovery/planning phase)",
+  "inputs": {
+    "feature": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "id": "spec",
+      "type": "skill",
+      "skill": "aura-spec",
+      "input": "{{ inputs.feature }}"
+    },
+    {
+      "id": "gate_spec",
+      "type": "gate",
+      "message": "Review spec.md. Approve to proceed directly to task decomposition?",
+      "options": ["approve", "reject", "edit"]
+    },
+    {
+      "id": "tasks",
+      "type": "skill",
+      "skill": "aura-tasks",
+      "input": "{{ inputs.feature }}"
+    },
+    {
+      "id": "gate_tasks",
+      "type": "gate",
+      "message": "Review tasks.md. Approve to begin implementation?",
+      "options": ["approve", "reject", "edit"]
+    },
+    {
+      "id": "impl",
+      "type": "skill",
+      "skill": "aura-impl",
+      "input": "{{ inputs.feature }}"
+    },
+    {
+      "id": "validate",
+      "type": "skill",
+      "skill": "aura-validate",
+      "input": "{{ inputs.feature }}"
+    }
+  ]
+}
