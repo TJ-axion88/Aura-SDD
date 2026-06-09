@@ -1,0 +1,30 @@
+---
+name: aura-clarify
+description: "Aura-SDD: Resolve [NEEDS CLARIFICATION] markers in spec.md through structured targeted Q&A."
+mode: agent
+---
+
+Identify all `[NEEDS CLARIFICATION]` markers in the feature's `spec.md`, ask targeted questions to resolve each one, and update the spec. Do not proceed to `/aura-plan` while any clarification remains open.
+
+Feature name: provided as argument.
+
+1. **Load spec** — read `.aura/specs/<NNN-feature-name>/spec.md`. If it doesn't exist, suggest `/aura-spec` first.
+
+2. **Extract markers** — find all `[NEEDS CLARIFICATION]` occurrences. For each one, formulate a single focused question.
+   - Good: "For Scenario 2: when the user has no active session, should the system redirect to login or show an error modal?"
+   - Bad: "Can you clarify Scenario 2?" (too vague) or "What about edge cases?" (too broad)
+
+3. **Ask and record answers** — ask each question one at a time. Record the answer immediately by updating the spec.
+
+4. **Validate resolution** — after all markers are resolved:
+   - Re-read spec.md
+   - Confirm no `[NEEDS CLARIFICATION]` remains
+   - Verify each scenario still has EARS-format acceptance criteria
+   - Verify independent testability is stated
+
+5. **Update spec** — replace each `[NEEDS CLARIFICATION]` with the resolved content. Update `spec.json` `updatedAt`.
+
+6. **Offer next step**:
+   > All clarifications resolved. Ready to proceed to `/aura-plan <feature-name>`.
+
+Follow rules in `.aura/settings/rules/` for relevant guidance.

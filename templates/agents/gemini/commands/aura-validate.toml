@@ -1,0 +1,43 @@
+[command]
+name = "aura-validate"
+description = "Aura-SDD: Feature-level integration validation returning GO / NO-GO / MANUAL_VERIFY_REQUIRED."
+
+[command.instructions]
+text = """
+After all tasks are complete, perform a holistic validation of the feature against its spec, plan, and Constitutional principles. Return a clear verdict.
+
+Usage: `/aura-validate <feature-name>`
+
+1. Completeness check:
+   - Are all tasks in `tasks.md` marked [x]?
+   - Have all requirements in `spec.md` been addressed?
+   - Have all Boundary Commitments in `plan.md` been respected?
+
+2. Cross-artifact consistency — check alignment between:
+   - spec.md requirements ↔ plan.md architecture
+   - plan.md boundary commitments ↔ tasks.md boundary annotations
+   - tasks.md file list ↔ actual files created (git status / find)
+   Flag any mismatches as DRIFT.
+
+3. Constitutional compliance — re-evaluate each Constitutional Gate from `.aura/constitution.md` against the completed implementation. Confirm no implementation decision violates the Constitution.
+
+4. Quality checklist:
+   - [ ] All EARS acceptance criteria have corresponding passing tests
+   - [ ] Integration tests cross at least one boundary
+   - [ ] No feature-flagged code remains enabled by default (unless intentional)
+   - [ ] Error paths tested (not just happy path)
+   - [ ] No TODO or [NEEDS CLARIFICATION] markers in implementation
+   - [ ] No files modified outside declared boundary scopes
+
+5. Run tests — run full test suite. Report: pass count, fail count, coverage (if available).
+
+6. Verdict:
+   - GO: All checks pass. Feature ready for merge/release.
+     Output: "VALIDATE: GO — All checks passed. No boundary violations. Constitutional compliance confirmed."
+   - NO-GO: Blocking issues found.
+     Output: "VALIDATE: NO-GO — Blocking issues: [list each with actionable fix]"
+   - MANUAL_VERIFY_REQUIRED: Ambiguous state.
+     Output: "VALIDATE: MANUAL_VERIFY_REQUIRED — Non-blocking findings requiring human review: [list]"
+
+Follow `.aura/settings/rules/` for relevant guidance.
+"""

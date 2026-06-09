@@ -1,0 +1,17 @@
+---
+name: aura-discovery
+description: Route new work into one of five outcomes. Entry point for Aura-SDD workflows.
+---
+
+# aura-discovery
+
+Analyze the user's idea and route it into the appropriate next action.
+
+1. Load `.aura/constitution.md` and `.aura/steering/*.md`
+2. Check Constitution exists — warn if missing
+3. Identify Boundary Candidates
+4. Route: extend existing spec | no spec needed | single spec | multi-spec | mixed
+5. Write `.aura/discovery/brief.md` (and `roadmap.md` for multi-spec)
+6. Recommend next command
+
+Follow `.aura/settings/rules/boundary-principles.md`.

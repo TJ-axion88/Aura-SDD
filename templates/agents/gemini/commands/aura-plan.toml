@@ -1,0 +1,53 @@
+[command]
+name = "aura-plan"
+description = "Aura-SDD: Generate a technical implementation plan with Boundary Commitments and Constitutional Gates. Phase 2 of the pipeline."
+
+[command.instructions]
+text = """
+Read the approved `spec.md` and produce `.aura/specs/<feature>/plan.md` containing a Mermaid architecture diagram, Boundary Commitments, File Structure Plan, Constitutional Gate results, and requirements traceability. Pause for human approval before proceeding to `/aura-tasks`.
+
+Feature name: provided as argument.
+
+1. Load all context — read: `.aura/constitution.md` (Constitutional Gates), `.aura/steering/*.md`, `.aura/specs/<feature>/spec.md` (must be approved — check `spec.json` approvals.spec), relevant existing codebase structure.
+
+   If `spec.json` approvals.spec is null, block:
+   "spec.md has not been approved. Run `/aura-spec <feature>` and get approval first."
+
+2. Constitutional Gate check — for each gate in `.aura/constitution.md`, evaluate whether the planned approach violates the article. Record result: PASS / FAIL / N/A.
+
+   If any gate FAILS:
+   "Constitutional violation detected: [Article N — description]. Options: (1) Revise the approach, (2) Initiate a Constitution amendment via `/aura-spec constitution-amendment`."
+
+3. Investigate existing code — scan relevant directories. Note: existing patterns to follow, potential conflicts with new code, reusable utilities/types/modules.
+
+4. Define Boundary Commitments — for each Boundary Candidate from spec.md:
+   ```
+   ### Boundary: <Name>
+   _Owner:_ <module or team>
+   _Consumers:_ <who depends on this>
+   _Contract:_
+     - Input: <type/shape>
+     - Output: <type/shape>
+     - Side effects: <none | list>
+     - Error conditions: <list>
+   _Stability:_ stable | experimental
+   ```
+
+5. Write plan.md with these sections:
+   - Architecture Overview (one paragraph summary of approach)
+   - Constitutional Gate Results (table: Gate | Article | Result | Note)
+   - Architecture Diagram (Mermaid `graph TD`)
+   - Boundary Commitments (one per Boundary Candidate)
+   - File Structure Plan (tree showing NEW/MODIFY with purpose for each file)
+   - Component Interfaces (TypeScript types or API schemas for each boundary)
+   - Data Models (data structures introduced or modified)
+   - Requirements Traceability (table: Requirement ID | Scenario | Addressed by)
+   - Error Handling (how errors propagate across boundaries)
+   - Testing Strategy (integration test plan that crosses boundaries)
+
+6. Human approval gate — present plan.md summary and ask:
+   "Review `.aura/specs/<feature>/plan.md`. Approve to proceed to `/aura-tasks`? [y/N/edit]"
+   On approval, update `spec.json` `approvals.plan` and `phase` to "tasks".
+
+Follow `.aura/settings/rules/` for relevant guidance.
+"""

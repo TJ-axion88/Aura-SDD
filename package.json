@@ -1,0 +1,46 @@
+{
+  "name": "aura-sdd",
+  "version": "1.0.0",
+  "description": "Next-generation Spec-Driven Development framework. Combines Boundary-First discipline, Constitutional Enforcement, workflow automation, and extension ecosystem — zero runtime dependencies.",
+  "keywords": [
+    "claude-code",
+    "cursor",
+    "windsurf",
+    "gemini-cli",
+    "codex",
+    "github-copilot",
+    "sdd",
+    "spec-driven-development",
+    "aura",
+    "steering",
+    "ai-development",
+    "tdd",
+    "agentic-sdlc",
+    "subagents",
+    "parallel-tasks",
+    "boundary-first",
+    "constitutional-enforcement"
+  ],
+  "author": "Aura-SDD Contributors",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "aura-sdd": "./dist/cli.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest -w",
+    "build": "tsc -p .",
+    "postbuild": "node ./scripts/add-shebang.mjs",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  }
+}
