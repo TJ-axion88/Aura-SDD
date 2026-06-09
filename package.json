@@ -38,7 +38,9 @@
     "test:watch": "vitest -w",
     "build": "tsc -p .",
     "postbuild": "node ./scripts/add-shebang.mjs",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "check:templates": "node ./scripts/check-template-purity.mjs",
+    "setup:hooks": "node ./scripts/setup-hooks.mjs"
   },
   "files": [
     "dist",
