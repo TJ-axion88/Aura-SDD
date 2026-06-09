@@ -1,6 +1,6 @@
 import { getAgentDefinition, type AgentType } from '../agents/registry.js';
 import type { SupportedLanguage } from '../utils/languages.js';
-import type { Profile } from '../cli/args.js';
+import type { Profile, OsTarget } from '../cli/args.js';
 
 export type TemplateContext = {
   AGENT: AgentType;
@@ -12,6 +12,7 @@ export type TemplateContext = {
   AURA_DIR: string;
   PROFILE: Profile;
   VERSION: string;
+  OS: Exclude<OsTarget, 'auto'>;
 };
 
 export const buildContext = (
@@ -19,7 +20,8 @@ export const buildContext = (
   lang: SupportedLanguage,
   auraDir: string,
   profile: Profile,
-  version = '1.0.0',
+  version = '2.0.0',
+  os: Exclude<OsTarget, 'auto'> = 'linux',
 ): TemplateContext => {
   const def = getAgentDefinition(agent);
   return {
@@ -32,5 +34,6 @@ export const buildContext = (
     AURA_DIR: auraDir,
     PROFILE: profile,
     VERSION: version,
+    OS: os,
   };
 };

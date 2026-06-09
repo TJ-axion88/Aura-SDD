@@ -2,7 +2,8 @@ import { agentList, getAgentDefinition, type AgentType } from '../agents/registr
 import { supportedLanguages, type SupportedLanguage } from '../utils/languages.js';
 
 export type OverwritePolicy = 'prompt' | 'skip' | 'force';
-export type Profile = 'full' | 'lean';
+export type Profile = 'full' | 'lean' | 'minimal';
+export type OsTarget = 'auto' | 'mac' | 'windows' | 'linux';
 
 export type ParsedArgs = {
   agent?: AgentType;
@@ -14,6 +15,7 @@ export type ParsedArgs = {
   auraDir?: string;
   manifest?: string;
   profile?: Profile;
+  os?: OsTarget;
   help?: boolean;
   version?: boolean;
   // subcommands
@@ -39,7 +41,7 @@ const BOOLEAN_FLAGS = new Set([
   'yes', 'y', 'dry-run', 'backup', 'help', 'h', 'version', 'v', ...agentAliasMap.keys(),
 ]);
 const VALUE_FLAGS = new Set([
-  'agent', 'lang', 'overwrite', 'aura-dir', 'backup', 'manifest', 'profile',
+  'agent', 'lang', 'overwrite', 'aura-dir', 'backup', 'manifest', 'profile', 'os',
 ]);
 const SUBCOMMANDS = new Set(['workflow', 'extension', 'preset']);
 
@@ -123,9 +125,15 @@ export const parseArgs = (argv: string[]): ParsedArgs => {
         case 'manifest': out.manifest = String(value); break;
         case 'profile': {
           const v = String(value);
-          if (!isEnum(v, ['full', 'lean'] as const))
+          if (!isEnum(v, ['full', 'lean', 'minimal'] as const))
             throw new Error(`Invalid --profile: "${v}"`);
           out.profile = v; break;
+        }
+        case 'os': {
+          const v = String(value);
+          if (!isEnum(v, ['auto', 'mac', 'windows', 'linux'] as const))
+            throw new Error(`Invalid --os: "${v}"`);
+          out.os = v; break;
         }
         case 'agent': {
           const v = String(value);

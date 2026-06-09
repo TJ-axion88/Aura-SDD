@@ -1,9 +1,9 @@
 import type { AgentType } from '../agents/registry.js';
 import type { SupportedLanguage } from '../utils/languages.js';
-import type { ParsedArgs, OverwritePolicy, Profile } from './args.js';
+import type { ParsedArgs, OverwritePolicy, Profile, OsTarget } from './args.js';
 
 export type ResolvedConfig = {
-  agent: AgentType;
+  agent?: AgentType;
   lang: SupportedLanguage;
   overwrite: OverwritePolicy;
   yes: boolean;
@@ -12,14 +12,26 @@ export type ResolvedConfig = {
   auraDir: string;
   manifestPath?: string;
   profile: Profile;
+  os: Exclude<OsTarget, 'auto'>;
 };
 
-const DEFAULT_AGENT: AgentType = 'claude-code';
 const DEFAULT_LANG: SupportedLanguage = 'en';
 const DEFAULT_AURA_DIR = '.aura';
 
+export const detectOs = (): Exclude<OsTarget, 'auto'> => {
+  const p = process.platform;
+  if (p === 'darwin') return 'mac';
+  if (p === 'win32') return 'windows';
+  return 'linux';
+};
+
+export const resolveOs = (os: OsTarget | undefined): Exclude<OsTarget, 'auto'> => {
+  if (!os || os === 'auto') return detectOs();
+  return os;
+};
+
 export const resolveConfig = (args: ParsedArgs): ResolvedConfig => ({
-  agent: args.agent ?? DEFAULT_AGENT,
+  agent: args.agent,
   lang: args.lang ?? DEFAULT_LANG,
   overwrite: args.overwrite ?? 'prompt',
   yes: args.yes ?? false,
@@ -28,4 +40,5 @@ export const resolveConfig = (args: ParsedArgs): ResolvedConfig => ({
   auraDir: args.auraDir ?? DEFAULT_AURA_DIR,
   manifestPath: args.manifest,
   profile: args.profile ?? 'full',
+  os: resolveOs(args.os),
 });

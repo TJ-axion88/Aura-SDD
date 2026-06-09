@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "artifacts": [
+    {
+      "id": "hooks",
+      "source": {
+        "type": "templateDir",
+        "fromDir": "agents/kiro/hooks",
+        "toDir": "{{AGENT_COMMANDS_DIR}}"
+      },
+      "category": "skills"
+    },
+    {
+      "id": "doc_kiro",
+      "source": {
+        "type": "templateFile",
+        "from": "agents/kiro/docs/kiro-context.md",
+        "toDir": ".",
+        "rename": "kiro-context.md"
+      },
+      "category": "docs"
+    },
+    {
+      "id": "settings_rules",
+      "source": {
+        "type": "templateDir",
+        "fromDir": "shared/settings/rules",
+        "toDir": "{{AURA_DIR}}/settings/rules"
+      },
+      "category": "settings"
+    },
+    {
+      "id": "settings_templates",
+      "source": {
+        "type": "templateDir",
+        "fromDir": "shared/settings/templates",
+        "toDir": "{{AURA_DIR}}/settings/templates"
+      },
+      "category": "settings"
+    },
+    {
+      "id": "workflow_full_sdd",
+      "source": {
+        "type": "templateFile",
+        "from": "shared/workflows/full-sdd.json",
+        "toDir": "{{AURA_DIR}}/workflows/definitions"
+      },
+      "category": "workflows"
+    },
+    {
+      "id": "workflow_tdd",
+      "source": {
+        "type": "templateFile",
+        "from": "shared/workflows/tdd.json",
+        "toDir": "{{AURA_DIR}}/workflows/definitions"
+      },
+      "category": "workflows"
+    },
+    {
+      "id": "workflow_lean_sdd",
+      "source": {
+        "type": "templateFile",
+        "from": "shared/workflows/lean-sdd.json",
+        "toDir": "{{AURA_DIR}}/workflows/definitions"
+      },
+      "category": "workflows"
+    }
+  ]
+}

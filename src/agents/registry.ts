@@ -147,6 +147,66 @@ export const agentDefinitions = {
     manifestId: 'gemini',
     commandFormat: 'toml',
   },
+  opencode: {
+    label: 'OpenCode',
+    description:
+      'Installs Aura skills in `.opencode/skills/aura-*/`, shared settings in `.aura/settings/`, and an opencode-context quickstart.',
+    aliasFlags: ['--opencode', '--open-code'],
+    recommendedModels: ['Claude Sonnet 4.6 or newer via OpenCode'],
+    layout: {
+      commandsDir: '.opencode/skills',
+      agentDir: '.opencode',
+      docFile: 'opencode-context.md',
+    },
+    commands: {
+      discovery: '`/aura-discovery <idea>`',
+      spec: '`/aura-spec <feature>`',
+      impl: '`/aura-impl <feature>`',
+      steering: '`/aura-steering`',
+    },
+    manifestId: 'opencode',
+    commandFormat: 'skill',
+  },
+  antigravity: {
+    label: 'Antigravity',
+    description:
+      'Installs Aura rules in `.antigravity/rules/aura/`, shared settings in `.aura/settings/`, and an antigravity-context quickstart.',
+    aliasFlags: ['--antigravity'],
+    recommendedModels: ['Claude Sonnet 4.6 or newer via Antigravity'],
+    layout: {
+      commandsDir: '.antigravity/rules/aura',
+      agentDir: '.antigravity',
+      docFile: 'antigravity-context.md',
+    },
+    commands: {
+      discovery: '`aura-discovery <idea>`',
+      spec: '`aura-spec <feature>`',
+      impl: '`aura-impl <feature>`',
+      steering: '`aura-steering`',
+    },
+    manifestId: 'antigravity',
+    commandFormat: 'markdown',
+  },
+  kiro: {
+    label: 'Amazon Kiro',
+    description:
+      'Installs Aura hooks in `.kiro/hooks/aura/`, shared settings in `.aura/settings/`, and a kiro-context quickstart. Compatible with existing .kiro/specs/.',
+    aliasFlags: ['--kiro', '--amazon-kiro'],
+    recommendedModels: ['Claude Sonnet 4.6 or newer via Kiro'],
+    layout: {
+      commandsDir: '.kiro/hooks/aura',
+      agentDir: '.kiro',
+      docFile: 'kiro-context.md',
+    },
+    commands: {
+      discovery: '`aura-discovery <idea>`',
+      spec: '`aura-spec <feature>`',
+      impl: '`aura-impl <feature>`',
+      steering: '`aura-steering`',
+    },
+    manifestId: 'kiro',
+    commandFormat: 'markdown',
+  },
 } as const satisfies Record<string, AgentDefinition>;
 
 export type AgentType = keyof typeof agentDefinitions;

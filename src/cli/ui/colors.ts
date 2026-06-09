@@ -15,3 +15,4 @@ export const formatSuccess = (s: string): string => colors.green(s);
 export const formatWarn = (s: string): string => colors.yellow(s);
 export const formatError = (s: string): string => colors.red(s);
 export const formatDim = (s: string): string => colors.gray(s);
+export const formatInfo = (s: string): string => colors.cyan(s);

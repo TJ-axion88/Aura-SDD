@@ -8,14 +8,15 @@ import { planInstall, summarizePlan, type PlannedFile } from './manifest/planner
 import { buildContext } from './template/context.js';
 import { renderFileContent } from './template/renderer.js';
 import { writeFileSafe, backupFile, fileExists, readFileOr } from './utils/fs.js';
-import { formatHeading, formatSuccess, formatWarn, formatDim, formatError } from './cli/ui/colors.js';
-import { askYesNo } from './cli/ui/prompt.js';
+import { formatHeading, formatSuccess, formatWarn, formatDim, formatError, formatInfo } from './cli/ui/colors.js';
+import { askYesNo, askChoice, isInteractive } from './cli/ui/prompt.js';
 import { loadWorkflowDefinition, runWorkflow } from './workflow/engine.js';
 import { ExtensionManager } from './extension/manager.js';
 import { listExtensions } from './extension/registry.js';
-import { getAgentDefinition } from './agents/registry.js';
+import { getAgentDefinition, agentList } from './agents/registry.js';
+import { detectCategory, defaultPolicy, CategoryPolicyStore } from './cli/policies.js';
 
-const VERSION = '1.0.0';
+const VERSION = '2.0.0';
 const PROJECT_ROOT = process.cwd();
 
 export const run = async (argv: string[]): Promise<void> => {
@@ -31,7 +32,6 @@ export const run = async (argv: string[]): Promise<void> => {
     return;
   }
 
-  // Handle subcommands
   if (args.subcommand) {
     await handleSubcommand(args.subcommand, args.subcommandArgs ?? []);
     return;
@@ -39,31 +39,34 @@ export const run = async (argv: string[]): Promise<void> => {
 
   const config = resolveConfig(args);
 
-  if (!config.agent) {
-    console.error(formatError('No agent specified. Use --claude-code, --cursor, --copilot, etc.'));
-    process.exit(1);
+  // Interactive agent selection if not specified
+  let agent = config.agent;
+  if (!agent) {
+    if (isInteractive() && !config.yes) {
+      const agentLabels = agentList.map((a) => `${a} — ${getAgentDefinition(a).label}`);
+      const chosen = await askChoice('Select your AI coding agent:', agentLabels);
+      agent = agentList[agentLabels.indexOf(chosen)];
+    } else {
+      agent = 'claude-code';
+    }
   }
 
-  const context = buildContext(config.agent, config.lang, config.auraDir, config.profile, VERSION);
+  const context = buildContext(agent, config.lang, config.auraDir, config.profile, VERSION, config.os);
 
-  // Load manifest
-  const manifestPath = config.manifestPath ?? config.agent;
+  const manifestPath = config.manifestPath ?? agent;
   const manifest = loadManifest(manifestPath);
   const templatesRoot = getTemplatesRoot();
 
-  // Process manifest → file list
   const processedFiles = processManifest(manifest, context, templatesRoot, PROJECT_ROOT);
-
-  // Plan installation
   const planned = planInstall(processedFiles, config.overwrite);
 
-  // Print summary
-  const agentDef = getAgentDefinition(config.agent);
+  const agentDef = getAgentDefinition(agent);
   console.log('');
   console.log(formatHeading(`Aura-SDD v${VERSION} — ${agentDef.label} install`));
   console.log('');
   console.log(`  Agent:    ${agentDef.label}`);
   console.log(`  Language: ${config.lang}`);
+  console.log(`  OS:       ${config.os}`);
   console.log(`  Aura dir: ${config.auraDir}`);
   console.log(`  Profile:  ${config.profile}`);
   console.log(`  Files:    ${summarizePlan(planned)}`);
@@ -78,9 +81,9 @@ export const run = async (argv: string[]): Promise<void> => {
     return;
   }
 
-  // Execute file writes
   let written = 0;
   let skipped = 0;
+  const policyStore = new CategoryPolicyStore();
 
   for (const planned_file of planned) {
     let action = planned_file.action;
@@ -90,8 +93,31 @@ export const run = async (argv: string[]): Promise<void> => {
         action = 'overwrite';
       } else {
         const rel = path.relative(PROJECT_ROOT, planned_file.destPath);
-        const confirmed = await askYesNo(`Overwrite existing file: ${rel}?`);
-        action = confirmed ? 'overwrite' : 'skip';
+        const category = detectCategory(rel);
+        const effective = policyStore.getEffective(category, defaultPolicy[category]);
+
+        if (effective === 'force') {
+          action = 'overwrite';
+        } else if (effective === 'skip') {
+          action = 'skip';
+        } else {
+          // prompt with apply-to-all option
+          const choice = await askChoice(
+            `File exists: ${rel}\n  Category: ${category}`,
+            ['overwrite this file', 'skip this file', `overwrite all ${category} files`, `skip all ${category} files`],
+          );
+          if (choice.startsWith('overwrite all')) {
+            policyStore.setSticky(category, 'force');
+            action = 'overwrite';
+          } else if (choice.startsWith('skip all')) {
+            policyStore.setSticky(category, 'skip');
+            action = 'skip';
+          } else if (choice.startsWith('overwrite')) {
+            action = 'overwrite';
+          } else {
+            action = 'skip';
+          }
+        }
       }
     }
 
@@ -100,13 +126,11 @@ export const run = async (argv: string[]): Promise<void> => {
       continue;
     }
 
-    // Backup if requested
     if (config.backup && planned_file.exists) {
       const backupDir = typeof config.backup === 'string' ? config.backup : undefined;
       backupFile(planned_file.destPath, backupDir);
     }
 
-    // Render and write
     const raw = readFileOr(planned_file.srcPath, '');
     const rendered = renderFileContent(raw, context);
     writeFileSafe(planned_file.destPath, rendered);
@@ -115,20 +139,21 @@ export const run = async (argv: string[]): Promise<void> => {
 
   console.log(formatSuccess(`✓ Done: ${written} file(s) written, ${skipped} skipped.`));
   console.log('');
-  printNextSteps(config.agent);
+  printNextSteps(agent);
 };
 
 const printNextSteps = (agent: string): void => {
   const def = getAgentDefinition(agent as Parameters<typeof getAgentDefinition>[0]);
   console.log(formatHeading('Next steps:'));
   console.log('');
-  console.log(`  1. Set up project constitution: /aura-constitution`);
-  console.log(`  2. Start with discovery: ${def.commands.discovery}`);
-  console.log(`  3. Create a spec: ${def.commands.spec}`);
-  console.log(`  4. Implement: ${def.commands.impl}`);
-  console.log(`  5. Build project memory: ${def.commands.steering}`);
+  console.log(`  1. Establish project principles:  /aura-constitution`);
+  console.log(`  2. Build project memory:          ${def.commands.steering}`);
+  console.log(`  3. Discover & route new work:     ${def.commands.discovery}`);
+  console.log(`  4. Create a spec:                 ${def.commands.spec}`);
+  console.log(`  5. Implement autonomously:        ${def.commands.impl}`);
   console.log('');
-  console.log(formatDim('  Tip: Run /aura-workflow to automate the full SDD pipeline.'));
+  console.log(formatDim('  Tip: aura-sdd workflow run full-sdd --input feature="<idea>"'));
+  console.log(formatDim('  Tip: /aura-spec-quick <feature>  for fast-track (no design phase)'));
   console.log('');
 };
 
@@ -141,7 +166,7 @@ const handleSubcommand = async (sub: string, subArgs: string[]): Promise<void> =
       await handleExtensionSubcommand(subArgs);
       break;
     case 'preset':
-      handlePresetSubcommand(subArgs);
+      await handlePresetSubcommand(subArgs);
       break;
     default:
       console.error(formatError(`Unknown subcommand: ${sub}`));
@@ -154,7 +179,10 @@ const handleWorkflowSubcommand = async (args: string[]): Promise<void> => {
   switch (action) {
     case 'run': {
       const [nameOrPath, ...inputArgs] = rest;
-      if (!nameOrPath) { console.error(formatError('Usage: aura-sdd workflow run <name> [--input key=value ...]')); process.exit(1); }
+      if (!nameOrPath) {
+        console.error(formatError('Usage: aura-sdd workflow run <name> [--input key=value ...]'));
+        process.exit(1);
+      }
       const inputs = parseInputArgs(inputArgs);
       const def = loadWorkflowDefinition(nameOrPath);
       await runWorkflow(def, inputs);
@@ -162,15 +190,17 @@ const handleWorkflowSubcommand = async (args: string[]): Promise<void> => {
     }
     case 'resume': {
       const [runId] = rest;
-      if (!runId) { console.error(formatError('Usage: aura-sdd workflow resume <run-id>')); process.exit(1); }
+      if (!runId) {
+        console.error(formatError('Usage: aura-sdd workflow resume <run-id>'));
+        process.exit(1);
+      }
       const def = loadWorkflowDefinition('__resume__');
       await runWorkflow(def, {}, '.aura', runId);
       break;
     }
-    case 'list': {
+    case 'list':
       await listWorkflows();
       break;
-    }
     default:
       console.error(formatError('workflow subcommand: run | resume | list'));
       process.exit(1);
@@ -182,10 +212,15 @@ const handleExtensionSubcommand = async (args: string[]): Promise<void> => {
   const manager = new ExtensionManager('.aura', PROJECT_ROOT, 'claude-code');
   switch (action) {
     case 'list':
-      listExtensions('.aura').forEach((e) => console.log(`  ${e.enabled ? '●' : '○'} ${e.id} — ${e.name} v${e.version}`));
+      listExtensions('.aura').forEach((e) =>
+        console.log(`  ${e.enabled ? '●' : '○'} ${e.id} — ${e.name} v${e.version}`),
+      );
       break;
     case 'remove':
-      if (!extId) { console.error(formatError('Usage: aura-sdd extension remove <id>')); process.exit(1); }
+      if (!extId) {
+        console.error(formatError('Usage: aura-sdd extension remove <id>'));
+        process.exit(1);
+      }
       manager.remove(extId);
       break;
     default:
@@ -194,9 +229,40 @@ const handleExtensionSubcommand = async (args: string[]): Promise<void> => {
   }
 };
 
-const handlePresetSubcommand = (args: string[]): void => {
-  const [action] = args;
-  console.log(formatWarn(`preset ${action ?? 'list'}: managed via .aura/presets/ directory`));
+const handlePresetSubcommand = async (args: string[]): Promise<void> => {
+  const { PresetManager } = await import('./preset/manager.js');
+  const [action, presetId] = args;
+  const manager = new PresetManager('.aura');
+  switch (action) {
+    case 'list': {
+      const presets = manager.list();
+      if (presets.length === 0) {
+        console.log(formatDim('  No presets installed. Add to .aura/presets/'));
+      } else {
+        presets.forEach((p) => console.log(`  ${p.enabled ? '●' : '○'} ${p.id} — ${p.name}`));
+      }
+      break;
+    }
+    case 'apply':
+      if (!presetId) {
+        console.error(formatError('Usage: aura-sdd preset apply <id>'));
+        process.exit(1);
+      }
+      manager.apply(presetId, PROJECT_ROOT);
+      console.log(formatSuccess(`✓ Preset "${presetId}" applied.`));
+      break;
+    case 'remove':
+      if (!presetId) {
+        console.error(formatError('Usage: aura-sdd preset remove <id>'));
+        process.exit(1);
+      }
+      manager.remove(presetId);
+      console.log(formatSuccess(`✓ Preset "${presetId}" removed.`));
+      break;
+    default:
+      console.error(formatError('preset subcommand: list | apply | remove'));
+      process.exit(1);
+  }
 };
 
 const printHelp = (): void => {
@@ -207,6 +273,7 @@ ${formatHeading('Usage:')}
   aura-sdd [agent] [options]
   aura-sdd workflow <run|resume|list> [args]
   aura-sdd extension <list|remove> [id]
+  aura-sdd preset <list|apply|remove> [id]
 
 ${formatHeading('Agent flags:')}
   --claude-code, --claude   Claude Code (default)
@@ -214,11 +281,15 @@ ${formatHeading('Agent flags:')}
   --copilot                 GitHub Copilot
   --codex                   OpenAI Codex
   --windsurf                Windsurf IDE
-  --gemini                  Google Gemini
+  --gemini                  Google Gemini CLI
+  --opencode                OpenCode
+  --antigravity             Antigravity
+  --kiro                    Amazon Kiro
 
 ${formatHeading('Options:')}
   --lang <code>             Language (en, ja, zh, es, ...) [default: en]
-  --profile <name>          Profile: full | lean [default: full]
+  --profile <name>          Profile: full | lean | minimal [default: full]
+  --os <target>             OS: auto | mac | windows | linux [default: auto]
   --dry-run                 Preview files without writing
   --overwrite <policy>      prompt | skip | force [default: prompt]
   --backup [dir]            Backup existing files before overwrite
@@ -231,23 +302,33 @@ ${formatHeading('Options:')}
 ${formatHeading('Examples:')}
   aura-sdd --lang ja
   aura-sdd --cursor --lang ja --dry-run
-  aura-sdd --profile lean -y
+  aura-sdd --profile minimal -y
+  aura-sdd --os windows --claude-code
   aura-sdd workflow run full-sdd --input feature="写真アルバム"
   aura-sdd workflow run tdd --input feature="ユーザー認証"
   aura-sdd workflow resume run-abc123
 
-${formatHeading('Skills installed:')}
-  /aura-discovery   Route new work (start here)
-  /aura-constitution  Establish project principles
-  /aura-spec        Write EARS-format requirements
-  /aura-clarify     Resolve ambiguous requirements
-  /aura-plan        Architecture + boundary design
-  /aura-tasks       Task decomposition
-  /aura-impl        Autonomous implementation (TDD)
-  /aura-validate    GO/NO-GO integration check
-  /aura-steering    Project memory management
-  /aura-workflow    Run/resume automated workflows
-  /aura-issues      Export tasks to GitHub Issues
+${formatHeading('Skills installed (20 skills):')}
+  /aura-discovery        Route new work (start here)
+  /aura-constitution     Establish project principles
+  /aura-steering         Project memory management
+  /aura-steering-custom  Create custom steering documents  [NEW]
+  /aura-spec             Write EARS-format requirements
+  /aura-spec-quick       Fast-track: spec + tasks in one shot  [NEW]
+  /aura-spec-batch       Create multiple specs from roadmap  [NEW]
+  /aura-spec-status      Track progress across all specs  [NEW]
+  /aura-clarify          Resolve ambiguous requirements
+  /aura-plan             Architecture + boundary design
+  /aura-tasks            Task decomposition
+  /aura-impl             Autonomous implementation (TDD)
+  /aura-validate         GO/NO-GO integration check
+  /aura-validate-gap     Gap analysis for existing codebases  [NEW]
+  /aura-validate-design  Design review before implementation  [NEW]
+  /aura-verify-completion  Fresh-evidence gate  [NEW]
+  /aura-review           Adversarial 12-check code review
+  /aura-debug            Root-cause-first debugging
+  /aura-workflow         Run/resume automated workflows
+  /aura-issues           Export tasks to GitHub Issues
 `);
 };
 
@@ -285,7 +366,8 @@ const listWorkflows = async (): Promise<void> => {
   console.log('');
 
   if (fs.existsSync(runsDir)) {
-    const runs = fs.readdirSync(runsDir)
+    const runs = fs
+      .readdirSync(runsDir)
       .filter((r) => fs.existsSync(path.join(runsDir, r, 'state.json')))
       .slice(-10);
     if (runs.length === 0) {
@@ -297,7 +379,8 @@ const listWorkflows = async (): Promise<void> => {
           const status = state.status ?? '?';
           const wf = state.workflowName ?? '?';
           const updated = state.updatedAt ? new Date(state.updatedAt).toLocaleString() : '?';
-          const statusIcon = status === 'completed' ? '✓' : status === 'failed' ? '✗' : status === 'paused' ? '⏸' : '●';
+          const statusIcon =
+            status === 'completed' ? '✓' : status === 'failed' ? '✗' : status === 'paused' ? '⏸' : '●';
           console.log(`  ${statusIcon} ${runId.padEnd(25)} ${wf.padEnd(20)} ${updated}`);
         } catch {
           console.log(`  ${runId}`);

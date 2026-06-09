@@ -2,14 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { agentList, getAgentDefinition } from '../src/agents/registry.js';
 
 describe('agentList', () => {
-  it('contains all 6 agents', () => {
-    expect(agentList).toHaveLength(6);
+  it('contains all 9 agents', () => {
+    expect(agentList).toHaveLength(9);
     expect(agentList).toContain('claude-code');
     expect(agentList).toContain('cursor');
     expect(agentList).toContain('copilot');
     expect(agentList).toContain('codex');
     expect(agentList).toContain('windsurf');
     expect(agentList).toContain('gemini');
+    expect(agentList).toContain('opencode');
+    expect(agentList).toContain('antigravity');
+    expect(agentList).toContain('kiro');
   });
 });
 

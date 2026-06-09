@@ -1,0 +1,81 @@
+# aura-verify-completion
+
+
+# aura-verify-completion
+
+## Goal
+
+Provide a fresh-evidence verification gate. Before any task or feature is declared complete, gather actual evidence from the current state of the codebase — never rely on prior assertions of success.
+
+Called internally by `/aura-impl` before marking a task complete. Can also be called manually.
+
+## Inputs
+
+`/aura-verify-completion <feature> [task-id]`
+
+## Core principle
+
+**"It works" is not evidence. Passing tests, readable diffs, and satisfied acceptance criteria are evidence.**
+
+## Execution Workflow
+
+### Step 1 — Identify what to verify
+
+If `task-id` provided: verify that specific task.
+If only `feature`: verify all incomplete tasks in `tasks.md`.
+
+### Step 2 — Gather fresh evidence
+
+For each task under verification:
+
+**Code evidence:**
+- Read the actual files modified (don't trust memory of what was written)
+- Verify the implementation matches the task's `_Boundary:_` annotation
+- Check no unintended files were modified outside the boundary
+
+**Test evidence:**
+- Locate tests written for this task
+- Confirm tests are RED → GREEN (not just GREEN from pre-existing code)
+- Confirm test names match the acceptance criteria language
+
+**Spec alignment:**
+- Map each acceptance criterion from `spec.md` to a passing test
+- Flag any criterion with no corresponding test
+
+### Step 3 — Verdict per task
+
+| Verdict | Meaning |
+|---------|---------|
+| ✓ **VERIFIED** | All criteria have passing tests, boundary respected |
+| ⚠ **PARTIAL** | Some criteria covered, others missing |
+| ✗ **UNVERIFIED** | Cannot confirm implementation without running code |
+| ✗ **BOUNDARY VIOLATED** | Files modified outside declared boundary |
+
+### Step 4 — Write verification report
+
+Append to `.aura/specs/<NNN>-<feature>/notes.md`:
+
+```markdown
+## Verification: Task <id> — <date>
+
+**Verdict:** VERIFIED / PARTIAL / UNVERIFIED
+
+**Evidence:**
+- Files modified: [list]
+- Tests added: [list]
+- Criteria covered: N/M
+
+**Gaps (if any):**
+...
+```
+
+### Step 5 — Gate decision
+
+- **VERIFIED**: allow task to be marked `[x]` complete
+- **PARTIAL / UNVERIFIED**: keep task `in_progress`, feed findings back to implementer
+
+## Completion Criteria
+
+- Fresh evidence gathered (no trust of prior claims)
+- Verdict written for each verified task
+- Gate decision stated

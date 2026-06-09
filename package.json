@@ -1,7 +1,7 @@
 {
   "name": "aura-sdd",
-  "version": "1.0.0",
-  "description": "Next-generation Spec-Driven Development framework. Combines Boundary-First discipline, Constitutional Enforcement, workflow automation, and extension ecosystem — zero runtime dependencies.",
+  "version": "2.0.0",
+  "description": "Next-generation Spec-Driven Development framework. 20 skills, 9 agents, Constitutional Enforcement, workflow automation, and extension ecosystem — zero runtime dependencies.",
   "keywords": [
     "claude-code",
     "cursor",
@@ -9,6 +9,10 @@
     "gemini-cli",
     "codex",
     "github-copilot",
+    "opencode",
+    "antigravity",
+    "kiro",
+    "amazon-kiro",
     "sdd",
     "spec-driven-development",
     "aura",
@@ -19,7 +23,9 @@
     "subagents",
     "parallel-tasks",
     "boundary-first",
-    "constitutional-enforcement"
+    "constitutional-enforcement",
+    "spec-batch",
+    "workflow-automation"
   ],
   "author": "Aura-SDD Contributors",
   "license": "MIT",
