@@ -5,6 +5,7 @@ import { evaluateCondition } from '../src/workflow/steps/if_then.js';
 import { executeSwitchStep } from '../src/workflow/steps/switch.js';
 import { executeFanInStep } from '../src/workflow/steps/fan_in.js';
 import { executeWhileLoopStep } from '../src/workflow/steps/while_loop.js';
+import { executeDoWhileStep } from '../src/workflow/steps/do_while.js';
 import { loadWorkflowDefinition } from '../src/workflow/engine.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -173,6 +174,53 @@ describe('while_loop step', () => {
       { id: 'loop', type: 'while_loop', condition: "{{ steps.check.output.ready }} == 'yes'", body: 'do_work', maxIterations: 3 },
       state,
       3,
+    );
+    expect(result.output?.['maxReached']).toBe(true);
+  });
+});
+
+describe('do_while step', () => {
+  it('always runs body on first iteration (iteration=0)', async () => {
+    const state = createRunState('run-1', 'wf', {});
+    state.steps['check'] = { status: 'completed', output: { ready: 'no' } };
+    const result = await executeDoWhileStep(
+      { id: 'loop', type: 'do_while', condition: "{{ steps.check.output.ready }} == 'yes'", body: 'do_work', next: 'finish' },
+      state,
+      0,
+    );
+    // First iteration: always go to body regardless of condition
+    expect(result.nextStepId).toBe('do_work');
+  });
+
+  it('continues when condition is true on subsequent iterations', async () => {
+    const state = createRunState('run-1', 'wf', {});
+    state.steps['check'] = { status: 'completed', output: { ready: 'yes' } };
+    const result = await executeDoWhileStep(
+      { id: 'loop', type: 'do_while', condition: "{{ steps.check.output.ready }} == 'yes'", body: 'do_work', next: 'finish' },
+      state,
+      2,
+    );
+    expect(result.nextStepId).toBe('do_work');
+  });
+
+  it('exits when condition is false on subsequent iterations', async () => {
+    const state = createRunState('run-1', 'wf', {});
+    state.steps['check'] = { status: 'completed', output: { ready: 'no' } };
+    const result = await executeDoWhileStep(
+      { id: 'loop', type: 'do_while', condition: "{{ steps.check.output.ready }} == 'yes'", body: 'do_work', next: 'finish' },
+      state,
+      1,
+    );
+    expect(result.nextStepId).toBe('finish');
+  });
+
+  it('stops at maxIterations', async () => {
+    const state = createRunState('run-1', 'wf', {});
+    state.steps['check'] = { status: 'completed', output: { ready: 'yes' } };
+    const result = await executeDoWhileStep(
+      { id: 'loop', type: 'do_while', condition: "{{ steps.check.output.ready }} == 'yes'", body: 'do_work', maxIterations: 5 },
+      state,
+      5,
     );
     expect(result.output?.['maxReached']).toBe(true);
   });

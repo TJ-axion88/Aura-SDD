@@ -207,6 +207,66 @@ export const agentDefinitions = {
     manifestId: 'kiro',
     commandFormat: 'markdown',
   },
+  cline: {
+    label: 'Cline',
+    description:
+      'Installs Aura commands in `.clinerules/aura/`, shared settings in `.aura/settings/`, and a .clinerules quickstart.',
+    aliasFlags: ['--cline'],
+    recommendedModels: ['Claude Sonnet 4.6 or newer via Cline'],
+    layout: {
+      commandsDir: '.clinerules/aura',
+      agentDir: '.cline',
+      docFile: '.clinerules',
+    },
+    commands: {
+      discovery: '`/aura-discovery <idea>`',
+      spec: '`/aura-spec <feature>`',
+      impl: '`/aura-impl <feature>`',
+      steering: '`/aura-steering`',
+    },
+    manifestId: 'cline',
+    commandFormat: 'markdown',
+  },
+  roo: {
+    label: 'Roo Code',
+    description:
+      'Installs Aura rules in `.roo/rules/aura/`, shared settings in `.aura/settings/`, and a .roorules quickstart.',
+    aliasFlags: ['--roo', '--roo-code'],
+    recommendedModels: ['Claude Sonnet 4.6 or newer via Roo Code'],
+    layout: {
+      commandsDir: '.roo/rules/aura',
+      agentDir: '.roo',
+      docFile: '.roorules',
+    },
+    commands: {
+      discovery: '`/aura-discovery <idea>`',
+      spec: '`/aura-spec <feature>`',
+      impl: '`/aura-impl <feature>`',
+      steering: '`/aura-steering`',
+    },
+    manifestId: 'roo',
+    commandFormat: 'markdown',
+  },
+  devin: {
+    label: 'Devin',
+    description:
+      'Installs Aura skills in `.devin/skills/aura-*/`, shared settings in `.aura/settings/`, and a .devin/context.md quickstart.',
+    aliasFlags: ['--devin'],
+    recommendedModels: ['Claude Sonnet 4.6 or newer via Devin'],
+    layout: {
+      commandsDir: '.devin/skills',
+      agentDir: '.devin',
+      docFile: '.devin/context.md',
+    },
+    commands: {
+      discovery: '`/aura-discovery <idea>`',
+      spec: '`/aura-spec <feature>`',
+      impl: '`/aura-impl <feature>`',
+      steering: '`/aura-steering`',
+    },
+    manifestId: 'devin',
+    commandFormat: 'skill',
+  },
 } as const satisfies Record<string, AgentDefinition>;
 
 export type AgentType = keyof typeof agentDefinitions;

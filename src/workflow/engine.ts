@@ -17,6 +17,7 @@ import { executeIfThenStep, type IfThenStep } from './steps/if_then.js';
 import { executeSwitchStep, type SwitchStep } from './steps/switch.js';
 import { executeFanInStep, type FanInStep } from './steps/fan_in.js';
 import { executeWhileLoopStep, type WhileLoopStep } from './steps/while_loop.js';
+import { executeDoWhileStep, type DoWhileStep } from './steps/do_while.js';
 import type { BaseStep } from './steps/fan_out.js';
 
 export type WorkflowStep =
@@ -27,7 +28,8 @@ export type WorkflowStep =
   | FanInStep
   | IfThenStep
   | SwitchStep
-  | WhileLoopStep;
+  | WhileLoopStep
+  | DoWhileStep;
 
 export type WorkflowDefinition = {
   name: string;
@@ -262,6 +264,11 @@ export const dispatchStep = async (
       const prevOutput = state.steps[s.id]?.output;
       const iteration = typeof prevOutput?.['iteration'] === 'number' ? prevOutput['iteration'] + 1 : 0;
       return executeWhileLoopStep(s, state, iteration);
+    }
+    case 'do_while': {
+      const prevOutput = state.steps[s.id]?.output;
+      const iteration = typeof prevOutput?.['iteration'] === 'number' ? prevOutput['iteration'] + 1 : 0;
+      return executeDoWhileStep(s, state, iteration);
     }
     default: {
       const unknownStep = step as BaseStep;

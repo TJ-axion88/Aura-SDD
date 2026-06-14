@@ -1,13 +1,13 @@
 ---
 name: aura-debug
-description: Supporting skill. Root-cause-first debugging when /aura-review rejects twice. Called by /aura-impl.
+description: Supporting skill. Root-cause-first debugging with 10 ROOT_CAUSE categories, CONFIDENCE scoring, and NEXT_ACTION recommendation. Called by /aura-impl.
 ---
 
 # aura-debug
 
 ## Goal
 
-Investigate a failed task implementation to its root cause and produce a concrete fix plan for the next Implementer subagent. Do not fix the code directly — produce a plan.
+Investigate a failed task implementation to its root cause and produce a concrete fix plan for the next Implementer subagent. Do not fix the code directly — produce a plan with CONFIDENCE scoring and NEXT_ACTION recommendation.
 
 ## Inputs (provided by /aura-impl)
 
@@ -19,15 +19,20 @@ Investigate a failed task implementation to its root cause and produce a concret
 
 ## Execution Workflow
 
-### Step 1 — Classify failure type
+### Step 1 — Classify ROOT_CAUSE_CATEGORY (10 categories)
 
-| Type | Signal | Approach |
-|------|--------|----------|
-| Logic error | Test assertion failures | Trace execution path |
-| Boundary violation | Files outside boundary modified | Redesign component interaction |
-| Missing requirement | AC not covered | Read spec again, identify gap |
-| Environment issue | Dependency/config failures | Web search for platform issue |
-| Design mismatch | plan.md contract not followed | Revisit boundary commitments |
+| Category | Signal | Approach |
+|----------|--------|----------|
+| `LOGIC_ERROR` | Test assertion failures, wrong output | Trace execution path |
+| `BOUNDARY_VIOLATION` | Files outside `_Boundary:_` modified | Redesign component interaction |
+| `MISSING_REQUIREMENT` | Acceptance criterion not covered | Re-read spec, identify gap |
+| `MISSING_DEPENDENCY` | `cannot find module` / package not found | Check package.json, npm install |
+| `CONFIG_GAP` | Missing env var, config key, or secret | Verify .env.example / config schema |
+| `MODULE_FORMAT` | ESM/CJS mismatch, import/require conflict | Check `"type"` in package.json |
+| `DESIGN_MISMATCH` | plan.md boundary commitment not followed | Revisit boundary commitments in plan.md |
+| `SPEC_CONFLICT` | Requirements contradict design or existing code | Escalate — human must resolve |
+| `TASK_SCOPE_EXCEEDED` | Task is too large; needs decomposition | Flag for task splitting in tasks.md |
+| `CONSTITUTIONAL_VIOLATION` | An Aura-SDD Constitution Article was violated | Re-read `.aura/constitution.md`, identify Article, amend fix |
 
 ### Step 2 — Trace root cause
 
@@ -39,13 +44,36 @@ Do not assume the obvious failure point. Trace backward:
 
 Use web search if the error involves:
 - External library behavior
-- Platform-specific behavior
+- Platform-specific behavior (Windows vs Linux, Node version)
 - Known framework bug
 
-### Step 3 — Produce fix plan
+### Step 3 — Assess CONFIDENCE
+
+| Level | Criteria |
+|-------|----------|
+| `HIGH` | Root cause is certain and reproducible. Fix is unambiguous. |
+| `MEDIUM` | Root cause is likely but one assumption remains. Fix may need minor adjustment. |
+| `LOW` | Multiple possible root causes. Fix is speculative. |
+
+### Step 4 — Determine NEXT_ACTION
+
+| Action | When to use |
+|--------|-------------|
+| `RETRY_TASK` | Root cause clear, fix is within task boundary, CONFIDENCE HIGH or MEDIUM |
+| `BLOCK_TASK` | Fix requires change outside boundary OR CONFIDENCE LOW after thorough investigation |
+| `STOP_FOR_HUMAN` | SPEC_CONFLICT / TASK_SCOPE_EXCEEDED / CONSTITUTIONAL_VIOLATION / external system unresolvable |
+
+### Step 5 — Produce debug report
 
 ```markdown
 ## Debug Report — Task <id>
+
+### ROOT_CAUSE_CATEGORY
+<one of the 10 categories>
+
+### CONFIDENCE
+HIGH | MEDIUM | LOW
+_Rationale:_ <one sentence on why this confidence level>
 
 ### Root Cause
 <One sentence: the actual cause, not the symptom>
@@ -57,9 +85,13 @@ Use web search if the error involves:
 1. <Specific change to file X>: <what to change and why>
 2. <Specific change to file Y>: <what to change and why>
 
-### Verification steps
+### Verification Steps
 1. Run: `<test command>`
 2. Expected: <specific output>
+
+### NEXT_ACTION
+RETRY_TASK | BLOCK_TASK | STOP_FOR_HUMAN
+_Reason:_ <one sentence>
 
 ### Notes for Implementer
 <Any non-obvious context the next implementer needs>
@@ -67,6 +99,9 @@ Use web search if the error involves:
 
 ## Completion Criteria
 
+- `ROOT_CAUSE_CATEGORY` assigned (one of 10)
+- `CONFIDENCE` level with rationale stated
 - Root cause identified (not just symptom)
-- Fix plan is specific enough for a new implementer with no prior context
+- Fix plan specific enough for a new implementer with no prior context
 - Verification steps listed
+- `NEXT_ACTION` determined with reason
