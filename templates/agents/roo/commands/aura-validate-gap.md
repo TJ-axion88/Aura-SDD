@@ -1,0 +1,75 @@
+# aura-validate-gap
+
+
+# aura-validate-gap
+
+## Goal
+
+Before implementing a spec against an existing codebase, validate that the spec's requirements don't conflict with existing code, and identify what can be reused vs. what must be built from scratch.
+
+## Inputs
+
+`/aura-validate-gap <feature>` — reads `.aura/specs/<NNN>-<feature>/spec.md`
+
+## Execution Workflow
+
+### Step 1 — Load spec
+
+Read the target `spec.md`. Extract:
+- Boundary Candidates
+- Acceptance criteria
+- Key interfaces/APIs mentioned
+
+### Step 2 — Codebase scan
+
+Search the existing codebase for:
+- Files/modules that match the boundary candidates
+- Functions or classes that implement similar behavior
+- Existing tests that cover overlapping scenarios
+- Conflicting interface signatures
+
+### Step 3 — Gap classification
+
+Classify each requirement as:
+| Class | Meaning |
+|-------|---------|
+| ✓ **Exists** | Already implemented and working |
+| ~ **Partial** | Partially implemented, needs extension |
+| ✗ **Missing** | Needs to be built from scratch |
+| ⚠ **Conflict** | Existing code contradicts the spec requirement |
+
+### Step 4 — Write gap report
+
+Write `.aura/specs/<NNN>-<feature>/gap-report.md`:
+
+```markdown
+# Gap Report: <feature>
+
+## Summary
+- Exists: N requirements
+- Partial: N requirements
+- Missing: N requirements
+- Conflicts: N requirements
+
+## Conflicts (resolve before implementing)
+...
+
+## Reuse opportunities
+...
+
+## Net new work
+...
+```
+
+### Step 5 — Recommend next action
+
+- If conflicts exist: must resolve before `/aura-plan`
+- If all partial/missing: proceed to `/aura-plan` with reuse notes
+- If mostly exists: suggest amending spec scope
+
+## Completion Criteria
+
+- `gap-report.md` written
+- Conflicts flagged with specific file locations
+- Reuse opportunities noted
+- Next action clearly recommended

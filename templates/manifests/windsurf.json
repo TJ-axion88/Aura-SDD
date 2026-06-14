@@ -64,6 +64,15 @@
         "toDir": "{{AURA_DIR}}/workflows/definitions"
       },
       "category": "workflows"
+    },
+    {
+      "id": "preset_lean",
+      "source": {
+        "type": "templateFile",
+        "from": "shared/presets/lean.json",
+        "toDir": "{{AURA_DIR}}/presets"
+      },
+      "category": "presets"
     }
   ]
 }
