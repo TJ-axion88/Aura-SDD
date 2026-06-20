@@ -4,7 +4,7 @@
 
 **AIコーディングエージェント向け Spec-Driven Development フレームワーク**
 
-Aura-SDD は `npx aura-sdd@latest` 一発で、**22のスキル・12のエージェント対応・Constitutional Enforcement・ワークフロー自動化**を、あなたのプロジェクトにインストールします。Claude Code・Cursor・GitHub Copilot・Codex・Windsurf・Gemini・OpenCode・Cline・Roo Code・Devin など主要 AI エージェントすべてに対応。
+Aura-SDD は1コマンドで、**22のスキル・12のエージェント対応・Constitutional Enforcement・ワークフロー自動化**を、あなたのプロジェクトにインストールします。Claude Code・Cursor・GitHub Copilot・Codex・Windsurf・Gemini・OpenCode・Cline・Roo Code・Devin など主要 AI エージェントすべてに対応。
 
 ---
 
@@ -12,22 +12,22 @@ Aura-SDD は `npx aura-sdd@latest` 一発で、**22のスキル・12のエージ
 
 ```bash
 # Claude Code（デフォルト、日本語）
-npx aura-sdd@latest --lang ja
+npx github:TJ-axion88/Aura-SDD --lang ja
 
 # Cursor IDE
-npx aura-sdd@latest --cursor --lang ja
+npx github:TJ-axion88/Aura-SDD --cursor --lang ja
 
 # Cline
-npx aura-sdd@latest --cline --lang ja
+npx github:TJ-axion88/Aura-SDD --cline --lang ja
 
 # Amazon Kiro（既存の .kiro/specs/ と共存可能）
-npx aura-sdd@latest --kiro --lang ja
+npx github:TJ-axion88/Aura-SDD --kiro --lang ja
 
 # 書き込まずプレビューのみ
-npx aura-sdd@latest --dry-run --lang ja
+npx github:TJ-axion88/Aura-SDD --dry-run --lang ja
 
 # Lean プロファイル（Discovery/Planning フェーズなし）
-npx aura-sdd@latest --profile lean --lang ja
+npx github:TJ-axion88/Aura-SDD --profile lean --lang ja
 ```
 
 ---

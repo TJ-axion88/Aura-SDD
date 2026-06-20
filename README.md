@@ -4,7 +4,7 @@
 
 **Spec-Driven Development Framework for AI Coding Agents**
 
-Aura-SDD installs **22 skills, 12-agent support, Constitutional Enforcement, and workflow automation** into your project with a single `npx aura-sdd@latest`. Works with Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, Gemini, OpenCode, Cline, Roo Code, Devin, and more.
+Aura-SDD installs **22 skills, 12-agent support, Constitutional Enforcement, and workflow automation** into your project with a single command. Works with Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, Gemini, OpenCode, Cline, Roo Code, Devin, and more.
 
 ---
 
@@ -12,22 +12,22 @@ Aura-SDD installs **22 skills, 12-agent support, Constitutional Enforcement, and
 
 ```bash
 # Claude Code (default)
-npx aura-sdd@latest
+npx github:TJ-axion88/Aura-SDD
 
 # Cursor IDE
-npx aura-sdd@latest --cursor
+npx github:TJ-axion88/Aura-SDD --cursor
 
 # Cline
-npx aura-sdd@latest --cline
+npx github:TJ-axion88/Aura-SDD --cline
 
 # Amazon Kiro (co-exists with existing .kiro/specs/)
-npx aura-sdd@latest --kiro
+npx github:TJ-axion88/Aura-SDD --kiro
 
 # Preview only — no files written
-npx aura-sdd@latest --dry-run
+npx github:TJ-axion88/Aura-SDD --dry-run
 
 # Lean profile (no Discovery/Planning phase)
-npx aura-sdd@latest --profile lean
+npx github:TJ-axion88/Aura-SDD --profile lean
 ```
 
 ---
