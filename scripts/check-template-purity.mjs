@@ -19,13 +19,11 @@ const TEMPLATES_DIR = path.join(ROOT, 'templates');
 
 // Patterns that must NEVER appear in templates/ — developer machine / identity specific
 const CONTAMINATION_PATTERNS = [
-  { pattern: /\/home\/developer/,              label: '開発者ホームパス (/home/developer)' },
-  { pattern: /\/Users\/developer/,             label: '開発者ホームパス (/Users/developer)' },
-  { pattern: /\bdeveloper\b/,                  label: '開発者ユーザー名 (developer)' },
-  { pattern: /axionsoft88@users\.noreply/,  label: '開発者プライベートコミットメール' },
-  { pattern: /xxxxxxxx/,                   label: '開発者個人メールアドレスの識別子' },
-  { pattern: /~\/\.ssh\/aura_sdd/,          label: 'SSH秘密鍵パス (~/.ssh/aura_sdd)' },
-  { pattern: /GIT_SSH_COMMAND.*aura_sdd/,   label: 'SSH鍵を使ったGitコマンド' },
+  { pattern: /\/home\/[a-z0-9_.-]+\//,            label: '絶対Unixホームパス (/home/<user>/)' },
+  { pattern: /\/Users\/[a-z0-9_.-]+\//,           label: '絶対macOSホームパス (/Users/<user>/)' },
+  { pattern: /[a-z0-9_-]+@users\.noreply\.github\.com/, label: 'gitコミット用no-replyメール' },
+  { pattern: /~\/\.ssh\/aura_sdd/,                label: 'SSH秘密鍵パス (~/.ssh/aura_sdd)' },
+  { pattern: /GIT_SSH_COMMAND.*aura_sdd/,         label: 'SSH鍵を使ったGitコマンド' },
 ];
 
 function* walkDir(dir) {

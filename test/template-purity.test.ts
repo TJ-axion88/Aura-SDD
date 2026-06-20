@@ -8,13 +8,11 @@ const ROOT = path.resolve(__dirname, '..');
 const TEMPLATES_DIR = path.join(ROOT, 'templates');
 
 const CONTAMINATION_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
-  { pattern: /\/home\/developer/,             label: 'dev home path (/home/developer)' },
-  { pattern: /\/Users\/developer/,            label: 'dev home path (/Users/developer)' },
-  { pattern: /\bdeveloper\b/,                 label: 'dev username (developer)' },
-  { pattern: /axionsoft88@users\.noreply/, label: 'dev commit email' },
-  { pattern: /xxxxxxxx/,                  label: 'dev personal email identifier' },
-  { pattern: /~\/\.ssh\/aura_sdd/,         label: 'SSH key path (~/.ssh/aura_sdd)' },
-  { pattern: /GIT_SSH_COMMAND.*aura_sdd/,  label: 'SSH-keyed git command' },
+  { pattern: /\/home\/[a-z0-9_.-]+\//,          label: 'absolute Unix home path (/home/<user>/)' },
+  { pattern: /\/Users\/[a-z0-9_.-]+\//,         label: 'absolute macOS home path (/Users/<user>/)' },
+  { pattern: /[a-z0-9_-]+@users\.noreply\.github\.com/, label: 'git no-reply commit email' },
+  { pattern: /~\/\.ssh\/aura_sdd/,              label: 'SSH key path (~/.ssh/aura_sdd)' },
+  { pattern: /GIT_SSH_COMMAND.*aura_sdd/,       label: 'SSH-keyed git command' },
 ];
 
 function walkDir(dir: string): string[] {
