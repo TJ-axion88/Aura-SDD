@@ -1,7 +1,7 @@
 {
   "name": "aura-sdd",
-  "version": "2.1.0",
-  "description": "Next-generation Spec-Driven Development framework. 20 skills, 9 agents, Constitutional Enforcement, workflow automation, and extension ecosystem — zero runtime dependencies.",
+  "version": "3.0.0",
+  "description": "AIコーディングエージェント向けSpec-Driven Developmentフレームワーク。22スキル・12エージェント対応・Constitutional Enforcement・ワークフロー自動化・ゼロランタイム依存。",
   "keywords": [
     "claude-code",
     "cursor",
@@ -13,6 +13,9 @@
     "antigravity",
     "kiro",
     "amazon-kiro",
+    "cline",
+    "roo-code",
+    "devin",
     "sdd",
     "spec-driven-development",
     "aura",
@@ -25,7 +28,8 @@
     "boundary-first",
     "constitutional-enforcement",
     "spec-batch",
-    "workflow-automation"
+    "workflow-automation",
+    "aura-sync"
   ],
   "author": "Aura-SDD Contributors",
   "license": "MIT",

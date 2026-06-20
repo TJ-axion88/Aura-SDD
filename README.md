@@ -1,213 +1,244 @@
-# Aura-SDD v2.0
+# Aura-SDD v3.0
 
-**Spec-Driven Development framework for AI coding agents.**
+**AIコーディングエージェント向け Spec-Driven Development フレームワーク**
 
-Aura-SDD installs a complete SDD methodology into your project — **20 skills**, **9 agents**, AI generation rules, document templates, and workflow automation — for Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, Gemini, OpenCode, Antigravity, and Amazon Kiro.
+Aura-SDD は `npx aura-sdd@latest` 一発で、**22のスキル・12のエージェント対応・Constitutional Enforcement・ワークフロー自動化**を、あなたのプロジェクトにインストールします。Claude Code・Cursor・GitHub Copilot・Codex・Windsurf・Gemini・OpenCode・Cline・Roo Code・Devin など主要 AI エージェントすべてに対応。
 
-## Quick start
+---
+
+## クイックスタート
 
 ```bash
-# Claude Code (default, Japanese)
-npx aura-sdd@latest --lang ja
-
-# Interactive agent selection (no flag needed)
+# Claude Code（デフォルト、日本語）
 npx aura-sdd@latest --lang ja
 
 # Cursor IDE
-npx aura-sdd@latest --cursor
+npx aura-sdd@latest --cursor --lang ja
 
-# Amazon Kiro (compatible with existing .kiro/specs/)
-npx aura-sdd@latest --kiro
+# Cline
+npx aura-sdd@latest --cline --lang ja
 
-# Preview without writing
-npx aura-sdd@latest --dry-run
+# Amazon Kiro（既存の .kiro/specs/ と共存可能）
+npx aura-sdd@latest --kiro --lang ja
 
-# Minimal profile (docs + rules only, no workflows)
-npx aura-sdd@latest --profile minimal
+# 書き込まずプレビューのみ
+npx aura-sdd@latest --dry-run --lang ja
+
+# Lean プロファイル（Discovery/Planning フェーズなし）
+npx aura-sdd@latest --profile lean --lang ja
 ```
 
-## What gets installed
+---
+
+## インストールされるもの
 
 ```
-.claude/skills/          ← 20 AI skills (Claude Code)
-CLAUDE.md                ← Project quickstart
+.claude/skills/          ← 22のAIスキル（Claude Code の場合）
+CLAUDE.md                ← クイックスタートガイド
 .aura/
-  settings/rules/        ← 10 AI generation rules
-  settings/templates/    ← Document templates
-  workflows/definitions/ ← 3 built-in workflows
+  settings/rules/        ← 10のAI生成ルール
+  settings/templates/    ← ドキュメントテンプレート
+  workflows/definitions/ ← 3つのビルトインワークフロー
+  presets/               ← lean プリセット（すぐに適用可能）
 ```
 
-## Skills (20 total)
+---
+
+## スキル一覧（22種）
 
 ### Discovery & Steering
-| Skill | Purpose |
-|-------|---------|
-| `/aura-discovery` | Route new work — start here |
-| `/aura-constitution` | Establish immutable project principles |
-| `/aura-steering` | Build project memory (product/tech/structure) |
-| `/aura-steering-custom` | Create purpose-built steering docs (API contracts, security, etc.) **[NEW]** |
+| スキル | 用途 |
+|--------|------|
+| `/aura-discovery` | 新しい作業の起点 — アイデアを適切なルートへ振り分け |
+| `/aura-constitution` | プロジェクト不変原則（Constitutional Enforcement）を確立 |
+| `/aura-steering` | プロジェクトメモリ（product / tech / structure）を構築・更新 |
+| `/aura-steering-custom` | 目的別ステアリングドキュメントを作成（APIコントラクト・セキュリティ等） |
 
-### Specification
-| Skill | Purpose |
-|-------|---------|
-| `/aura-spec` | Write EARS-format requirements |
-| `/aura-spec-quick` | Fast-track: spec + tasks in one shot **[NEW]** |
-| `/aura-spec-batch` | Create multiple specs from roadmap in parallel **[NEW]** |
-| `/aura-spec-status` | Track progress across all specs **[NEW]** |
-| `/aura-clarify` | Resolve ambiguous requirements |
+### 仕様（Specification）
+| スキル | 用途 |
+|--------|------|
+| `/aura-spec` | EARS形式の要求仕様を作成 |
+| `/aura-spec-quick` | 高速モード：仕様＋タスクを一括作成 |
+| `/aura-spec-batch` | ロードマップから複数仕様を並列作成 |
+| `/aura-spec-refine` | 仕様を段階的に精緻化（quick → full） |
+| `/aura-spec-status` | 全スペックの進捗・健全性スコアをダッシュボード表示 |
+| `/aura-clarify` | 曖昧な要求事項を対話的に解決 |
 
-### Architecture & Planning
-| Skill | Purpose |
-|-------|---------|
-| `/aura-plan` | Architecture + Boundary Commitments |
-| `/aura-tasks` | Task decomposition with wave structure |
+### アーキテクチャ & 計画
+| スキル | 用途 |
+|--------|------|
+| `/aura-plan` | アーキテクチャ + 境界コミットメントを作成（Constitutional Gates チェック付き） |
+| `/aura-tasks` | 承認済み計画をタスクへ分解（波構造・依存関係付き） |
 
-### Implementation
-| Skill | Purpose |
-|-------|---------|
-| `/aura-impl` | Autonomous TDD implementation (1 task/iteration) |
-| `/aura-review` | Adversarial 12-check code review |
-| `/aura-debug` | Root-cause-first debugging |
-| `/aura-verify-completion` | Fresh-evidence gate before marking done **[NEW]** |
+### 実装
+| スキル | 用途 |
+|--------|------|
+| `/aura-impl` | 自律TDD実装（1タスク1イテレーション、サブエージェントトリオ） |
+| `/aura-review` | 独立した対立的コードレビュー（12項目チェック） |
+| `/aura-debug` | 根本原因ファースト自動デバッグ（10カテゴリ・CONFIDENCE評価） |
+| `/aura-verify-completion` | 完了前の証拠確認ゲート（実ファイルを読んで確認） |
 
-### Validation
-| Skill | Purpose |
-|-------|---------|
-| `/aura-validate` | GO/NO-GO integration check |
-| `/aura-validate-gap` | Gap analysis for existing codebases **[NEW]** |
-| `/aura-validate-design` | 10-point design review before implementation **[NEW]** |
+### 検証（Validation）
+| スキル | 用途 |
+|--------|------|
+| `/aura-validate` | GO / NO-GO 統合検証 |
+| `/aura-validate-gap` | 既存コードベースとのギャップ分析 |
+| `/aura-validate-design` | 実装前の設計レビュー（10点チェック） |
+| `/aura-sync` | Spec ↔ 実装の乖離検出（DRIFT_DETECTED / IN_SYNC / SPEC_BEHIND） |
 
-### Operations
-| Skill | Purpose |
-|-------|---------|
-| `/aura-workflow` | Run/resume automated pipelines |
-| `/aura-issues` | Export tasks to GitHub Issues |
+### 運用
+| スキル | 用途 |
+|--------|------|
+| `/aura-workflow` | 自動パイプラインの実行・再開・管理 |
+| `/aura-issues` | タスクを GitHub Issues へエクスポート |
 
-## Workflows
+---
+
+## ワークフロー自動化
 
 ```bash
-# Full SDD pipeline (discovery → spec → plan → tasks → impl → validate)
+# フルSDDパイプライン（Discovery → Spec → Plan → Tasks → Impl → Validate）
 aura-sdd workflow run full-sdd --input feature="写真アルバム機能"
 
-# TDD pipeline (spec-first → RED→GREEN→REFACTOR → validate)
+# TDDパイプライン（Spec → RED→GREEN→REFACTOR → Validate）
 aura-sdd workflow run tdd --input feature="ユーザー認証"
 
-# Lean pipeline (spec → tasks → impl → validate, no planning phase)
+# Leanパイプライン（Spec → Tasks → Impl → Validate、Discoveryなし）
 aura-sdd workflow run lean-sdd --input feature="通知設定"
 
-# Resume a paused workflow
+# 中断したワークフローを再開
 aura-sdd workflow resume run-abc123
+
+# ワークフロー一覧
+aura-sdd workflow list
 ```
 
-## Core disciplines
+---
 
-- **Boundary-First**: Identify and commit to architectural boundaries before implementation
-- **Constitutional Enforcement**: Immutable project principles, checked as gates during planning
-- **1-task-per-iteration**: Each task runs in a fresh agent context for hygiene
-- **Adversarial Review**: Independent reviewer checks every implementation
-- **Fresh-evidence Gate**: `/aura-verify-completion` reads actual files, never trusts prior claims
-- **EARS Format**: `WHEN/IF/WHILE/WHERE/THE SYSTEM SHALL` for all acceptance criteria
+## コア規律
 
-## Workflow phases (human approval required)
+| 規律 | 説明 |
+|------|------|
+| **Boundary-First** | 実装前に境界（どのファイルを触るか）を宣言・コミット |
+| **Constitutional Enforcement** | プロジェクト原則を Articles で明文化、/aura-plan 時に自動ゲートチェック |
+| **1-task-per-iteration** | 各タスクを独立した新鮮なコンテキストで実行（コンテキスト汚染防止） |
+| **Adversarial Review** | 実装とは独立したレビュアーサブエージェントが毎回チェック |
+| **EARS形式** | `WHEN/IF/WHILE/WHERE/THE SYSTEM SHALL` で検証可能なAC を記述 |
+| **aura-sync** | Spec のACと実装ファイルを突き合わせ、乖離をリアルタイム検出 |
 
-```
-spec.md approved → /aura-plan (optional: /aura-validate-design)
-plan.md approved → /aura-tasks
-tasks.md approved → /aura-impl
-```
+---
 
-## Agents (9 total)
-
-| Agent | Flag | Status |
-|-------|------|--------|
-| Claude Code | `--claude-code` (default) | ✅ Stable |
-| Cursor | `--cursor` | ✅ Stable |
-| GitHub Copilot | `--copilot` | ✅ Stable |
-| OpenAI Codex | `--codex` | ✅ Stable |
-| Windsurf | `--windsurf` | ✅ Stable |
-| Google Gemini | `--gemini` | ✅ Stable |
-| OpenCode | `--opencode` | ✅ Stable |
-| Antigravity | `--antigravity` | 🟡 Beta |
-| Amazon Kiro | `--kiro` | 🟡 Beta |
-
-## Options
+## フェーズゲート（人間の承認が必要）
 
 ```
---lang <code>        Language: en, ja, zh, zh-TW, es, pt, de, fr, ru, it, ko, ar, el
---profile <name>     full (default) | lean | minimal
---os <target>        auto (default) | mac | windows | linux
---dry-run            Preview without writing
---overwrite <policy> prompt (default) | skip | force
---backup [dir]       Backup existing files
---aura-dir <path>    Config directory (default: .aura)
--y, --yes            Auto-confirm all prompts
--v, --version        Print version
--h, --help           Print help
+/aura-spec  →  spec.md 承認  →  /aura-plan
+/aura-plan  →  plan.md 承認  →  /aura-tasks
+/aura-tasks →  tasks.md 承認 →  /aura-impl
 ```
 
-## Project structure (created in your project)
+---
+
+## 対応エージェント（12種・全Stable）
+
+| エージェント | フラグ | インストール先 |
+|------------|--------|--------------|
+| Claude Code | `--claude-code`（デフォルト） | `.claude/skills/` |
+| Cursor | `--cursor` | `.cursor/rules/aura/` |
+| GitHub Copilot | `--copilot` | `.github/prompts/aura/` |
+| OpenAI Codex | `--codex` | `.codex/skills/` |
+| Windsurf | `--windsurf` | `.windsurf/rules/aura/` |
+| Google Gemini | `--gemini` | `.gemini/commands/aura/` |
+| OpenCode | `--opencode` | `.opencode/skills/` |
+| Antigravity | `--antigravity` | `.antigravity/rules/aura/` |
+| Amazon Kiro | `--kiro` | `.kiro/hooks/aura/` |
+| Cline | `--cline` | `.clinerules/aura/` |
+| Roo Code | `--roo` | `.roo/rules/aura/` |
+| Devin | `--devin` | `.devin/skills/` |
+
+---
+
+## ワークフローステップ型（9種）
+
+`skill` / `shell` / `gate` / `if_then` / `fan_out` / `fan_in` / `switch` / `while_loop` / `do_while`
+
+---
+
+## オプション
+
+```
+--lang <code>        言語: en, ja, zh, zh-TW, es, pt, de, fr, ru, it, ko, ar, el
+--profile <name>     full（デフォルト）| lean | minimal
+--os <target>        auto（デフォルト）| mac | windows | linux
+--dry-run            書き込まずプレビュー
+--overwrite <policy> prompt（デフォルト）| skip | force
+--backup [dir]       既存ファイルをバックアップ
+--aura-dir <path>    設定ディレクトリ（デフォルト: .aura）
+-y, --yes            確認を省略して自動承認
+-v, --version        バージョン表示
+-h, --help           ヘルプ表示
+```
+
+---
+
+## プロジェクト構造（インストール後）
 
 ```
 .aura/
-├── constitution.md          # Project principles (Constitutional Gates)
+├── constitution.md          # プロジェクト不変原則（Constitutional Gates）
 ├── steering/
-│   ├── product.md           # Product goals, constraints, personas
-│   ├── tech.md              # Tech stack, architecture decisions
-│   ├── structure.md         # Directory layout, naming conventions
-│   └── <custom>.md          # Custom steering docs (/aura-steering-custom)
+│   ├── product.md           # 製品目標・制約・ペルソナ
+│   ├── tech.md              # 技術スタック・アーキテクチャ判断
+│   ├── structure.md         # ディレクトリ構成・命名規則
+│   └── <custom>.md          # カスタムステアリング（/aura-steering-custom）
 ├── settings/
-│   ├── rules/               # 10 AI generation rules
-│   └── templates/           # Document templates
+│   ├── rules/               # 10のAI生成ルール
+│   └── templates/           # ドキュメントテンプレート
 ├── specs/
-│   └── NNN-feature-name/
-│       ├── spec.json        # Status, metadata
-│       ├── spec.md          # EARS requirements
-│       ├── plan.md          # Architecture + Boundary Commitments
-│       ├── tasks.md         # Annotated task list
-│       ├── notes.md         # Implementation Notes (propagated forward)
-│       ├── gap-report.md    # Gap analysis (/aura-validate-gap)
-│       └── design-review.md # Design review (/aura-validate-design)
+│   └── NNN-機能名/
+│       ├── spec.json        # ステータス・メタデータ
+│       ├── spec.md          # EARS形式の要求仕様
+│       ├── plan.md          # アーキテクチャ + 境界コミットメント
+│       ├── tasks.md         # タスクリスト（波構造・依存関係付き）
+│       └── notes.md         # 実装メモ（後続タスクへ伝播）
 ├── discovery/
-│   ├── brief.md             # Feature brief
-│   └── roadmap.md           # Multi-spec roadmap
-├── extensions/              # Installed extensions
-├── presets/                 # Installed presets
+│   ├── brief.md             # 機能ブリーフ
+│   └── roadmap.md           # マルチスペックロードマップ
+├── extensions/              # インストール済みエクステンション
+├── presets/                 # インストール済みプリセット（lean を含む）
 └── workflows/
-    ├── definitions/         # Workflow JSON definitions
-    └── runs/                # Run state (for resume)
+    ├── definitions/         # ワークフロー定義（JSON）
+    └── runs/                # 実行状態（resume 用）
 ```
 
-## Extension system
+---
+
+## プリセット・エクステンション
 
 ```bash
-# Install a community extension
-aura-sdd extension add <id>
-
-# List installed extensions
-aura-sdd extension list
-
-# Remove an extension
-aura-sdd extension remove <id>
-```
-
-## Preset system
-
-```bash
-# List installed presets
+# インストール済みプリセットを確認
 aura-sdd preset list
 
-# Apply a preset to your project
-aura-sdd preset apply <id>
+# lean プリセットを適用（constitution テンプレート + spec テンプレート + ガイド）
+aura-sdd preset apply lean
 
-# Remove a preset
-aura-sdd preset remove <id>
+# エクステンションをインストール
+aura-sdd extension add <id>
+
+# エクステンション一覧
+aura-sdd extension list
 ```
 
-## Recommended models
+---
 
-- Planning/review: Claude Opus 4.8+
-- Implementation: Claude Sonnet 4.6+
+## 推奨モデル
 
-## License
+| 用途 | モデル |
+|------|--------|
+| Planning / Review | Claude Opus 4.8 以上 |
+| Implementation | Claude Sonnet 4.6 以上 |
 
-MIT
+---
+
+## ライセンス
+
+MIT — 詳細は [LICENSE](LICENSE) を参照

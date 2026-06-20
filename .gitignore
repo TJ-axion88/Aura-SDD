@@ -4,3 +4,5 @@ dist/
 # .aura/ はドッグフーディング開発のため一部をコミット対象とする
 .aura/workflows/runs/
 .aura/specs/
+# discovery/ は内部開発メモのため非公開
+.aura/discovery/
