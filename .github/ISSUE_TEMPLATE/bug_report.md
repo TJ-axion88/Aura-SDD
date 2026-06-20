@@ -14,7 +14,7 @@ assignees: ''
 
 ```bash
 # 再現するコマンドを記述してください
-npx aura-sdd@latest --agent ...
+npx github:TJ-axion88/Aura-SDD --agent ...
 ```
 
 1. 
@@ -31,7 +31,7 @@ npx aura-sdd@latest --agent ...
 
 ## 環境情報
 
-- Aura-SDD バージョン: `npx aura-sdd --version` の出力
+- Aura-SDD バージョン: `npx github:TJ-axion88/Aura-SDD --version` の出力
 - エージェント: Claude Code / Cursor / Cline / Roo / その他
 - OS: macOS / Linux / Windows
 - Node.js バージョン: `node --version`
