@@ -17,7 +17,7 @@ import { listExtensions } from './extension/registry.js';
 import { getAgentDefinition, agentList } from './agents/registry.js';
 import { detectCategory, defaultPolicy, CategoryPolicyStore } from './cli/policies.js';
 
-const VERSION = '2.1.0';
+const VERSION = '3.0.0';
 const PROJECT_ROOT = process.cwd();
 
 export const run = async (argv: string[]): Promise<void> => {
