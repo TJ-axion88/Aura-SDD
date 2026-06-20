@@ -7,7 +7,7 @@ Aura-SDD へのコントリビューションを歓迎します。
 ## 開発環境のセットアップ
 
 ```bash
-git clone https://github.com/axionsoft88/Aura-SDD.git
+git clone https://github.com/TJ-axion88/Aura-SDD.git
 cd Aura-SDD
 npm install
 npm test        # 全テスト実行（60テスト）
