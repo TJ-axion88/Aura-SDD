@@ -33,6 +33,14 @@
   ],
   "author": "Aura-SDD Contributors",
   "license": "MIT",
+  "homepage": "https://github.com/TJ-axion88/Aura-SDD#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TJ-axion88/Aura-SDD.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TJ-axion88/Aura-SDD/issues"
+  },
   "type": "module",
   "bin": {
     "aura-sdd": "./dist/cli.js"

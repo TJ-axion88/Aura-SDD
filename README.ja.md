@@ -241,6 +241,26 @@ aura-sdd extension list
 
 ---
 
+## 類似フレームワークとの比較
+
+Aura-SDD・[cc-sdd](https://github.com/gotalab/cc-sdd)・[spec-kit](https://github.com/specstoryai/specstory) はいずれも AI コーディングエージェント向けの SDD フレームワークです。以下は 2026 年 6 月時点の事実ベースの比較です。
+
+| 項目 | Aura-SDD v3.0 | cc-sdd v3.0.2 |
+|-----|-------------|-------------|
+| 対応エージェント数 | 12（全 Stable） | 8（Stable: 2、Beta: 6） |
+| Cline / Roo Code / Devin | ✅ | ❌ |
+| Amazon Kiro | ✅ | ❌ |
+| スキル / コマンド数 | 22 | 17 |
+| Spec ↔ 実装の乖離検出（`aura-sync`） | ✅ | ❌ |
+| ワークフローステップ型 | 9種（`do_while` 含む） | — |
+| Lean プリセット | ✅ | ❌ |
+| ランタイム依存 | 0 | 0 |
+| ライセンス | MIT | MIT |
+
+cc-sdd は 3,500 以上の Star を持つ確立されたコミュニティと、feature flag 付きの長時間自律実装（`/kiro-impl`）が特徴です。すでに cc-sdd を使用している場合、Aura-SDD はより広いエージェント対応と追加ツールを提供する互換性のある代替手段です。
+
+---
+
 ## ライセンス
 
 MIT — 詳細は [LICENSE](LICENSE) を参照

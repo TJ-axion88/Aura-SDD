@@ -241,6 +241,26 @@ aura-sdd extension list
 
 ---
 
+## Comparison with Similar Frameworks
+
+Aura-SDD, [cc-sdd](https://github.com/gotalab/cc-sdd), and [spec-kit](https://github.com/specstoryai/specstory) are all SDD frameworks for AI coding agents. The table below shows factual differences as of June 2026.
+
+| Feature | Aura-SDD v3.0 | cc-sdd v3.0.2 |
+|---------|--------------|--------------|
+| Supported agents | 12 (all Stable) | 8 (2 Stable, 6 Beta) |
+| Cline / Roo Code / Devin | ✅ | ❌ |
+| Amazon Kiro | ✅ | ❌ |
+| Skills / commands | 22 | 17 |
+| Spec ↔ implementation drift detection (`aura-sync`) | ✅ | ❌ |
+| Workflow step types | 9 (`do_while` included) | — |
+| Lean preset | ✅ | ❌ |
+| Runtime dependencies | 0 | 0 |
+| License | MIT | MIT |
+
+cc-sdd has an established community (3,500+ stars) and a polished long-running implementation workflow (`/kiro-impl` with feature flags). If you already use cc-sdd, Aura-SDD is a compatible alternative with broader agent coverage and additional tooling.
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
